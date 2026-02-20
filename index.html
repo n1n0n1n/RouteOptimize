@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>RouteOptimize</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="phone">
+
+  <!-- ==================== SCREEN 1: LOGIN ==================== -->
+  <div class="screen" id="screen-login">
+    <div class="login-glow"></div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-right">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+            <rect x="0"    y="3" width="3" height="9"  rx="1" opacity="0.3"/>
+            <rect x="4.5"  y="2" width="3" height="10" rx="1" opacity="0.5"/>
+            <rect x="9"    y="0" width="3" height="12" rx="1" opacity="0.7"/>
+            <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+          </svg>
+          <div class="battery"><div class="battery-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="login-logo-wrap fade-up">
+        <div class="logo-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M8 18 Q18 8 28 18 Q18 28 8 18Z" stroke="#fff" stroke-width="2.5" fill="none"/>
+            <circle cx="28" cy="18" r="4" fill="#fff"/>
+            <circle cx="8"  cy="18" r="3" fill="#fff" opacity="0.5"/>
+            <path d="M16 18 L22 15 L22 21Z" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="logo-name">RouteOptimize</div>
+        <div class="logo-sub">AI-Powered Delivery Assistant</div>
+      </div>
+
+      <div class="login-toggle fade-up-1">
+        <button class="toggle-btn active" id="driver-toggle" onclick="setLoginMode('driver')">Driver Login</button>
+        <button class="toggle-btn"        id="admin-toggle"  onclick="setLoginMode('admin')">Admin Login</button>
+      </div>
+
+      <div class="login-form fade-up-2">
+        <div class="input-group">
+          <div class="input-label">Email</div>
+          <div class="input-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="m2 7 10 7 10-7"/>
+            </svg>
+            <input type="email" id="login-email"
+                   placeholder="john.driver@example.com"
+                   value="john.driver@example.com"
+                   oninput="checkLoginBtn()"/>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Password <span style="color:var(--red)">*</span></div>
+          <div class="input-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="login-pw"
+                   placeholder="••••••••••"
+                   value="••••••••••"
+                   oninput="checkLoginBtn()"/>
+          </div>
+        </div>
+        <button class="sign-btn" id="sign-btn" onclick="doLogin()">
+          <span id="sign-btn-label">Sign In as Driver</span>
+        </button>
+        <div class="login-hint">New driver? <span>Sign up here</span></div>
+        <div class="login-hint" style="color:var(--text3)">Demo credentials are pre-filled</div>
+      </div>
+
+      <div class="login-stats fade-up-3">
+        <div class="ls-item"><div class="ls-val">AI</div><div class="ls-key">Smart Routes</div></div>
+        <div class="ls-item"><div class="ls-val" style="font-size:14px;line-height:1.2">Real-<br>time</div><div class="ls-key">Updates</div></div>
+        <div class="ls-item"><div class="ls-val">15%</div><div class="ls-key">Fuel Savings</div></div>
+      </div>
+
+    </div><!-- end scroll wrapper -->
+  </div><!-- end #screen-login -->
+
+
+  <!-- ==================== SCREEN 2: HOME ==================== -->
+  <div class="screen hidden" id="screen-home">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-right">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+          <rect x="0"    y="3" width="3" height="9"  rx="1" opacity="0.3"/>
+          <rect x="4.5"  y="2" width="3" height="10" rx="1" opacity="0.5"/>
+          <rect x="9"    y="0" width="3" height="12" rx="1" opacity="0.7"/>
+          <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+        </svg>
+        <div class="battery"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- Hero Header -->
+      <div class="home-hero fade-up">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="home-greeting" id="home-greeting">Good morning,</div>
+            <div class="home-name"     id="home-name">John Driver</div>
+            <div class="home-id">ID: DRV-2026-456 &bull; VAN-001</div>
+          </div>
+          <div class="home-avatar" id="home-avatar">JD</div>
+        </div>
+      </div>
+
+      <!-- Admin-only banner (hidden by default) -->
+      <div class="admin-banner" id="admin-home-banner" style="display:none;">
+        <div class="ab-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Admin Dashboard
+        </div>
+        <div class="ab-grid">
+          <div class="ab-item"><div class="ab-item-label">Pending Orders</div><div class="ab-item-val" style="color:var(--orange)">12</div></div>
+          <div class="ab-item"><div class="ab-item-label">Active Routes</div><div class="ab-item-val" style="color:var(--green)">5</div></div>
+          <div class="ab-item"><div class="ab-item-label">Total Drivers</div><div class="ab-item-val">8</div></div>
+          <div class="ab-item"><div class="ab-item-label">Fleet Efficiency</div><div class="ab-item-val" style="color:var(--green)">91%</div></div>
+        </div>
+        <button class="ab-assign-btn">Confirm &amp; Assign Route</button>
+      </div>
+
+      <!-- Driver stats grid -->
+      <div class="stats-grid fade-up-1" id="driver-stats">
+        <div class="stat-tile">
+          <div class="stat-tile-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="M8 2v4M16 2v4M2 10h20"/>
+            </svg>
+            Active Deliveries
+          </div>
+          <div class="stat-tile-val">8</div>
+          <div class="stat-tile-sub">of 24 total</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+              <polyline points="16 7 22 7 22 13"/>
+            </svg>
+            Route Efficiency
+          </div>
+          <div class="stat-tile-val green">94%</div>
+          <div class="stat-tile-sub">+5% vs avg</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Fuel Saved
+          </div>
+          <div class="stat-tile-val">2.3L</div>
+          <div class="stat-tile-sub">17% reduction</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Time Saved
+          </div>
+          <div class="stat-tile-val">23min</div>
+          <div class="stat-tile-sub">vs standard</div>
+        </div>
+      </div>
+
+      <!-- TSP Banner -->
+      <div class="tsp-banner fade-up-2">
+        <div class="tsp-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </div>
+        <div style="flex:1;">
+          <div class="tsp-title">TSP Route Optimized</div>
+          <div class="tsp-desc">Today's route is 4.2 km shorter (15%) than standard sequence. Saving fuel &amp; time.</div>
+          <div class="tsp-metrics">
+            <div class="tsp-m"><div class="tsp-m-val">-15%</div><div class="tsp-m-key">Distance</div></div>
+            <div class="tsp-m"><div class="tsp-m-val">-17%</div><div class="tsp-m-key">Fuel</div></div>
+            <div class="tsp-m"><div class="tsp-m-val">-23min</div><div class="tsp-m-key">Time</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Route Card -->
+      <div class="section-label">Current Route</div>
+      <div class="route-card fade-up-3" style="margin:0 22px;">
+        <div class="route-card-top">
+          <div>
+            <div class="route-name">Downtown Loop - Route A</div>
+            <div class="route-meta">8 stops &bull; 24.3 km &bull; ML Optimized</div>
+            <div class="route-eta">Projected ETA: 2:45 PM</div>
+          </div>
+          <span class="pill pill-green">Active</span>
+        </div>
+        <button class="start-btn" onclick="goTo('navigate')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+          Start Navigation
+        </button>
+      </div>
+
+      <!-- Today's Deliveries -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 22px;">
+        <div class="section-label" style="padding:0;margin:18px 0 10px;">Today's Deliveries</div>
+        <span style="font-size:12px;color:var(--accent-light);cursor:pointer;">View All</span>
+      </div>
+
+      <div class="delivery-list fade-up-4">
+        <div class="delivery-row">
+          <div class="d-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="2">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="d-name">Sarah Johnson</div>
+            <div class="d-addr">142 Market Street, Downtown</div>
+          </div>
+          <div>
+            <div class="d-eta">10:30 AM</div>
+            <div style="text-align:right;margin-top:3px;"><span class="pill pill-green" style="font-size:10px;">ready</span></div>
+          </div>
+        </div>
+        <div class="delivery-row">
+          <div class="d-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="d-name">Tech Solutions Inc.</div>
+            <div class="d-addr">142 Market Street, Downtown</div>
+          </div>
+          <div>
+            <div class="d-eta">10:30 AM</div>
+            <div style="text-align:right;margin-top:3px;"><span class="pill pill-gray" style="font-size:10px;">normal</span></div>
+          </div>
+        </div>
+        <div class="delivery-row">
+          <div class="d-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="d-name">Mike Chen</div>
+            <div class="d-addr">89 Oak Avenue, Westside</div>
+          </div>
+          <div>
+            <div class="d-eta">11:15 AM</div>
+            <div style="text-align:right;margin-top:3px;"><span class="pill pill-blue" style="font-size:10px;">in-transit</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end .scroll -->
+
+    <nav class="nav-bar">
+      <button class="nav-item active" onclick="goTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-item" onclick="goTo('packages')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Packages
+      </button>
+      <button class="nav-item" onclick="goTo('navigate')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Navigate
+      </button>
+      <button class="nav-item" onclick="goTo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+  </div><!-- end #screen-home -->
+
+
+  <!-- ==================== SCREEN 3: PACKAGES ==================== -->
+  <div class="screen hidden" id="screen-packages">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-right">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+          <rect x="0"    y="3" width="3" height="9"  rx="1" opacity="0.3"/>
+          <rect x="4.5"  y="2" width="3" height="10" rx="1" opacity="0.5"/>
+          <rect x="9"    y="0" width="3" height="12" rx="1" opacity="0.7"/>
+          <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+        </svg>
+        <div class="battery"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <div class="page-title">Package Management</div>
+      <button class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 12 22 21 22 3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="scroll">
+
+      <!-- Search Bar -->
+      <div class="pkg-search fade-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" placeholder="Search by tracking number or address..." oninput="filterPkgs(this.value)"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+      </div>
+
+      <!-- Totals Row -->
+      <div class="pkg-totals fade-up-1">
+        <div class="pt-item"><div class="pt-val">24</div><div class="pt-key">Total</div></div>
+        <div class="pt-item"><div class="pt-val blue">8</div><div class="pt-key">Active</div></div>
+        <div class="pt-item"><div class="pt-val green">16</div><div class="pt-key">Remaining</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="pkg-tabs fade-up-2">
+        <button class="pkg-tab active" onclick="setPkgTab('active',this)">Active (8)</button>
+        <button class="pkg-tab"        onclick="setPkgTab('pending',this)">Pending (16)</button>
+        <button class="pkg-tab"        onclick="setPkgTab('completed',this)">Completed (0)</button>
+      </div>
+
+      <!-- Package Card 1 -->
+      <div class="pkg-card fade-up-3" onclick="togglePkg(this)" data-status="active">
+        <div class="pkg-card-top">
+          <div class="pkg-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="pkg-name">Sarah Johnson</div>
+            <div class="pkg-id">PKG-2026-001234</div>
+            <div class="pkg-addr">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              142 Market Street, Downtown
+            </div>
+          </div>
+          <div class="pkg-badges">
+            <span class="pill pill-green">ready</span>
+            <span class="pill pill-red"   style="margin-top:4px;">high</span>
+          </div>
+        </div>
+        <div class="pkg-meta-row">
+          <div class="pkg-m"><div class="pkg-m-val">10:30 AM</div><div class="pkg-m-key">ETA</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">2.5 kg</div><div class="pkg-m-key">Weight</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">1</div><div class="pkg-m-key">Items</div></div>
+        </div>
+        <div class="pkg-expand">
+          <div class="pkg-expand-inner">
+            <div class="pkg-detail-grid">
+              <div><div class="pkg-detail-label">Dimensions</div><div class="pkg-detail-val">30×25×15 cm</div></div>
+              <div><div class="pkg-detail-label">Phone</div><div class="pkg-detail-val">(555) 123-4567</div></div>
+              <div><div class="pkg-detail-label">Email</div><div class="pkg-detail-val" style="font-size:11px;">sarah.j@example.com</div></div>
+              <div><div class="pkg-detail-label">Floor / Unit</div><div class="pkg-detail-val">Floor 3, Unit 302</div></div>
+            </div>
+            <div class="action-row">
+              <button class="action-btn btn-secondary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                Navigate
+              </button>
+              <button class="action-btn btn-primary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Mark Delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Package Card 2 -->
+      <div class="pkg-card fade-up-4" onclick="togglePkg(this)" data-status="active">
+        <div class="pkg-card-top">
+          <div class="pkg-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="pkg-name">Tech Solutions Inc.</div>
+            <div class="pkg-id">PKG-2026-001235</div>
+            <div class="pkg-addr">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              142 Market Street, Downtown
+            </div>
+          </div>
+          <div class="pkg-badges">
+            <span class="pill pill-green">ready</span>
+            <span class="pill pill-gray" style="margin-top:4px;">normal</span>
+          </div>
+        </div>
+        <div class="pkg-meta-row">
+          <div class="pkg-m"><div class="pkg-m-val">10:30 AM</div><div class="pkg-m-key">ETA</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">5.2 kg</div><div class="pkg-m-key">Weight</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">2</div><div class="pkg-m-key">Items</div></div>
+        </div>
+        <div class="pkg-expand">
+          <div class="pkg-expand-inner">
+            <div class="pkg-detail-grid">
+              <div><div class="pkg-detail-label">Dimensions</div><div class="pkg-detail-val">45×35×20 cm</div></div>
+              <div><div class="pkg-detail-label">Phone</div><div class="pkg-detail-val">(555) 987-6543</div></div>
+            </div>
+            <div class="action-row">
+              <button class="action-btn btn-secondary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                Navigate
+              </button>
+              <button class="action-btn btn-primary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Mark Delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Package Card 3 -->
+      <div class="pkg-card fade-up-5" onclick="togglePkg(this)" data-status="active">
+        <div class="pkg-card-top">
+          <div class="pkg-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="pkg-name">Mike Chen</div>
+            <div class="pkg-id">PKG-2026-001236</div>
+            <div class="pkg-addr">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              89 Oak Avenue, Westside
+            </div>
+          </div>
+          <div class="pkg-badges">
+            <span class="pill pill-blue">in-transit</span>
+            <span class="pill pill-gray" style="margin-top:4px;">normal</span>
+          </div>
+        </div>
+        <div class="pkg-meta-row">
+          <div class="pkg-m"><div class="pkg-m-val">11:15 AM</div><div class="pkg-m-key">ETA</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">1.8 kg</div><div class="pkg-m-key">Weight</div></div>
+          <div class="pkg-m"><div class="pkg-m-val">2</div><div class="pkg-m-key">Items</div></div>
+        </div>
+        <div class="pkg-expand">
+          <div class="pkg-expand-inner">
+            <div class="pkg-detail-grid">
+              <div><div class="pkg-detail-label">Dimensions</div><div class="pkg-detail-val">20×18×12 cm</div></div>
+              <div><div class="pkg-detail-label">Phone</div><div class="pkg-detail-val">(555) 234-5678</div></div>
+            </div>
+            <div class="action-row">
+              <button class="action-btn btn-secondary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                Navigate
+              </button>
+              <button class="action-btn btn-primary" onclick="event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Mark Delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div><!-- end .scroll -->
+
+    <nav class="nav-bar">
+      <button class="nav-item" onclick="goTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-item active" onclick="goTo('packages')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Packages
+      </button>
+      <button class="nav-item" onclick="goTo('navigate')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Navigate
+      </button>
+      <button class="nav-item" onclick="goTo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+  </div><!-- end #screen-packages -->
+
+
+  <!-- ==================== SCREEN 4: NAVIGATION ==================== -->
+  <div class="screen hidden" id="screen-navigate">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-right">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+          <rect x="0"    y="3" width="3" height="9"  rx="1" opacity="0.3"/>
+          <rect x="4.5"  y="2" width="3" height="10" rx="1" opacity="0.5"/>
+          <rect x="9"    y="0" width="3" height="12" rx="1" opacity="0.7"/>
+          <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+        </svg>
+        <div class="battery"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="nav-screen-header fade-up">
+      <button class="back-btn" onclick="goTo('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="nav-status-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        Navigating...
+      </div>
+    </div>
+
+    <!-- Animated Route Visualizer -->
+    <div class="route-viz fade-up-1">
+      <div class="stop-dots">
+        <div class="stop-dot done"></div>
+        <div class="stop-dot active"></div>
+        <div class="stop-dot"></div>
+        <div class="stop-dot"></div>
+      </div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- Turn Instruction -->
+      <div class="instruction-card fade-up-2">
+        <div class="instr-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="instr-dist">In 200m</div>
+          <div class="instr-text">Turn right onto Oak Avenue</div>
+        </div>
+      </div>
+
+      <!-- Metrics Row -->
+      <div class="nav-metrics fade-up-3">
+        <div class="nav-metric">
+          <div class="nav-metric-icon">🕐</div>
+          <div class="nav-metric-val">10:45</div>
+          <div class="nav-metric-key">ETA</div>
+        </div>
+        <div class="nav-metric">
+          <div class="nav-metric-icon">📍</div>
+          <div class="nav-metric-val">3.2 km</div>
+          <div class="nav-metric-key">Distance</div>
+        </div>
+        <div class="nav-metric">
+          <div class="nav-metric-icon">⛽</div>
+          <div class="nav-metric-val">0.4 L</div>
+          <div class="nav-metric-key">Fuel</div>
+        </div>
+      </div>
+
+      <!-- Live Route Optimized Banner -->
+      <div class="route-opt-live fade-up-4">
+        <div class="live-dot"></div>
+        <div class="live-text">
+          <strong>Route Optimized</strong> · Live<br>
+          AI detected lighter traffic on alternate route. Saving 5 min &amp; 1.2L fuel.
+        </div>
+        <span class="pill pill-green" style="flex-shrink:0;font-size:10px;">Live</span>
+      </div>
+
+      <!-- Next Stop Card -->
+      <div class="next-stop-card fade-up-5">
+        <div class="ns-header">
+          <div class="ns-title">Next Stop</div>
+          <span class="pill pill-blue">Stop 1 of 8</span>
+        </div>
+        <div class="ns-addr">142 Market Street</div>
+        <div class="ns-sub">Downtown, Floor 3, Unit 302</div>
+        <div class="ns-pkgs">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+          3 packages
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" style="margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="ai-zone-msg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+          AI Drop-off Zone: Safe parking detected 20m ahead on right side.
+        </div>
+      </div>
+
+      <!-- Recipient Info -->
+      <div style="margin:12px 22px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Recipient</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span style="font-size:14px;font-weight:600;">Sarah Johnson</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.06 6.06l1.02-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span style="font-size:13px;color:var(--text2);">(555) 123-4567</span>
+            </div>
+            <button style="background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:7px;cursor:pointer;">Call</button>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--text2);">
+          <div style="color:var(--orange);font-weight:700;margin-bottom:4px;">Special Instructions</div>
+          &bull; Ring doorbell twice<br>
+          &bull; Leave at front desk if no answer<br>
+          &bull; Handle with care – fragile contents
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="nav-btns" style="margin-bottom:20px;">
+        <button class="nav-btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M8 12h8M12 8v8"/>
+          </svg>
+          Details
+        </button>
+        <button class="nav-btn-arrived" onclick="arrivalAlert()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Arrived
+        </button>
+      </div>
+
+    </div><!-- end .scroll -->
+
+    <nav class="nav-bar">
+      <button class="nav-item" onclick="goTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-item" onclick="goTo('packages')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Packages
+      </button>
+      <button class="nav-item active" onclick="goTo('navigate')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Navigate
+      </button>
+      <button class="nav-item" onclick="goTo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+  </div><!-- end #screen-navigate -->
+
+
+  <!-- ==================== SCREEN 5: SETTINGS ==================== -->
+  <div class="screen hidden" id="screen-settings">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-right">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+          <rect x="0"    y="3" width="3" height="9"  rx="1" opacity="0.3"/>
+          <rect x="4.5"  y="2" width="3" height="10" rx="1" opacity="0.5"/>
+          <rect x="9"    y="0" width="3" height="12" rx="1" opacity="0.7"/>
+          <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+        </svg>
+        <div class="battery"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- Profile Card -->
+      <div class="settings-profile fade-up" id="settings-profile">
+        <div class="sp-avatar" id="settings-avatar">JD</div>
+        <div style="flex:1;">
+          <div class="sp-name"  id="settings-name">John Driver</div>
+          <div class="sp-email" id="settings-email">john.driver@example.com</div>
+          <div class="sp-id"    id="settings-driverid">Driver ID: DRV-2026-456</div>
+        </div>
+        <div class="sp-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- AI & Optimization -->
+      <div class="settings-group fade-up-1">
+        <div class="settings-group-title">AI &amp; Optimization</div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b9fff" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Auto Route Optimization</div>
+            <div class="sr-desc">Real-time route adjustments</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Smart Loading Suggestions</div>
+            <div class="sr-desc">AI-powered loading tips</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b9fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Drop-off Zone Detection</div>
+            <div class="sr-desc">AI parking assistance</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-group fade-up-2">
+        <div class="settings-group-title">Notifications</div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Route Updates</div>
+            <div class="sr-desc">Traffic &amp; detours</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Delivery Alerts</div>
+            <div class="sr-desc">Package notifications</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="setting-row" onclick="toggleSetting(this)">
+          <div class="sr-icon sr-icon-purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Voice Navigation</div>
+            <div class="sr-desc">Turn-by-turn audio</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-group fade-up-3">
+        <div class="settings-group-title">Appearance</div>
+        <div class="setting-row" onclick="toggleDarkMode(this)">
+          <div class="sr-icon sr-icon-purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Dark Mode</div>
+            <div class="sr-desc">App color theme</div>
+          </div>
+          <div class="toggle on" id="dark-mode-toggle"></div>
+        </div>
+      </div>
+
+      <!-- Vehicle & Account -->
+      <div class="settings-group fade-up-4">
+        <div class="settings-group-title">Vehicle &amp; Account</div>
+        <div class="setting-row">
+          <div class="sr-icon sr-icon-blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b9fff" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Vehicle Settings</div>
+            <div class="sr-desc">VAN-001 &bull; Type: Cargo Van</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon sr-icon-green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="sr-body">
+            <div class="sr-label">Edit Profile</div>
+            <div class="sr-desc">Name, email, mobile</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="logout-row fade-up-5" onclick="doLogout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Log Out
+      </div>
+
+    </div><!-- end .scroll -->
+
+    <nav class="nav-bar">
+      <button class="nav-item" onclick="goTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-item" onclick="goTo('packages')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Packages
+      </button>
+      <button class="nav-item" onclick="goTo('navigate')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Navigate
+      </button>
+      <button class="nav-item active" onclick="goTo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+  </div><!-- end #screen-settings -->
+
+
+</div><!-- end .phone -->
+</div><!-- end .phone-wrap -->
+
+<script src="app.js"></script>
+</body>
+</html>
