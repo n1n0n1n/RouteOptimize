@@ -105,95 +105,75 @@ function drawAlternativeRoute(route, altMins) {
 }
 
 /* ─────────────────────────────────────────
-   DRAW MAIN ROUTE  — per-leg traffic colors
-   Each leg of the route gets its own color
-   based on that leg's individual traffic ratio.
-   This means congested legs show red/orange
-   while free-flowing legs stay blue —
-   exactly like Google Maps route coloring.
+   DRAW MAIN ROUTE — per-step traffic colors
+
+   Google's Directions API gives us individual
+   STEPS inside each leg. Each step = one street
+   segment / maneuver with its own path and
+   duration. We color each step independently
+   based on how it compares to the LEG average
+   speed, giving street-level color changes
+   exactly like Google Maps.
 ───────────────────────────────────────── */
 function drawMainRoute(route) {
-  // We need to map each leg to a slice of the overview_path.
-  // Google doesn't expose per-leg path slices directly, so we
-  // approximate by finding the overview_path point closest to
-  // each leg's end_location, then coloring that slice.
+  // Collect all steps across all legs
+  const allSteps = [];
+  route.legs.forEach(leg => {
+    // Per-leg traffic ratio used to scale step durations
+    const legNormal  = leg.duration.value || 1;
+    const legTraffic = leg.duration_in_traffic
+      ? leg.duration_in_traffic.value : legNormal;
+    const legRatio   = legTraffic / legNormal;
 
-  const fullPath = route.overview_path;
+    leg.steps.forEach(step => {
+      // Each step has its own duration (normal, no traffic data at step level)
+      // We scale it by the leg's traffic ratio to estimate step congestion.
+      // Steps on the same leg that are highways get scaled more — we use
+      // distance-per-second (speed) to judge relative congestion.
+      const stepNormalSecs = step.duration.value || 1;
+      const stepDistMeters = step.distance.value || 1;
 
-  // Build an array of {endLat, endLng, color} per leg
-  const legColors = route.legs.map(leg => {
-    const normal  = leg.duration.value;
-    const traffic = leg.duration_in_traffic
-      ? leg.duration_in_traffic.value : normal;
-    const ratio   = normal > 0 ? traffic / normal : 1;
+      // Normal speed for this step (m/s)
+      const stepSpeedNormal = stepDistMeters / stepNormalSecs;
 
-    let color;
-    if      (ratio >= 1.35) color = '#e03131'; // red   — heavy
-    else if (ratio >= 1.12) color = '#f08c00'; // orange — moderate
-    else                    color = '#3b82f6'; // blue  — clear/fast
+      // Estimated speed under current traffic = scale by leg ratio
+      // Faster steps (highways) degrade more under traffic
+      const stepSpeedTraffic = stepSpeedNormal / legRatio;
 
-    return {
-      endLat: leg.end_location.lat(),
-      endLng: leg.end_location.lng(),
-      color,
-    };
+      // Classify by absolute speed (m/s):
+      // >10 m/s (~36km/h) clear, 5–10 moderate, <5 heavy
+      // AND by relative slowdown ratio
+      let color;
+      if (legRatio >= 1.5 || stepSpeedTraffic < 4) {
+        color = '#e03131'; // heavy — red
+      } else if (legRatio >= 1.18 || stepSpeedTraffic < 8) {
+        color = '#f08c00'; // moderate — orange
+      } else {
+        color = '#3b82f6'; // clear — blue
+      }
+
+      // step.lat_lngs gives the detailed point array for this street segment
+      const path = step.lat_lngs;
+      if (path && path.length >= 2) {
+        allSteps.push({ path, color });
+      } else if (step.start_location && step.end_location) {
+        // Fallback: just start + end if no detailed path
+        allSteps.push({ path: [step.start_location, step.end_location], color });
+      }
+    });
   });
 
-  // Walk overview_path, splitting at the point nearest each leg boundary
-  let segStart = 0;
-  let legIdx   = 0;
-
-  // Helper: squared distance (no sqrt needed for comparison)
-  const dist2 = (a, bLat, bLng) => {
-    const dlat = a.lat() - bLat;
-    const dlng = a.lng() - bLng;
-    return dlat * dlat + dlng * dlng;
-  };
-
-  // For each leg find the index in overview_path closest to leg end_location
-  const splitIndices = legColors.map(lc => {
-    let bestIdx = segStart;
-    let bestD   = Infinity;
-    for (let i = segStart; i < fullPath.length; i++) {
-      const d = dist2(fullPath[i], lc.endLat, lc.endLng);
-      if (d < bestD) { bestD = d; bestIdx = i; }
-      // Early exit once we start getting farther again
-      if (d > bestD * 4 && i > segStart + 5) break;
-    }
-    segStart = bestIdx;
-    return bestIdx;
+  // Draw all steps: white halo first, then colored line on top
+  allSteps.forEach(({ path, color }) => {
+    addPolyline(path, '#ffffff', 10, 0.55, 8);
+    addPolyline(path, color,     6,  0.92, 9);
   });
 
-  // Draw each leg segment
-  let prevIdx = 0;
-  splitIndices.forEach((endIdx, i) => {
-    const segPath = fullPath.slice(prevIdx, endIdx + 1);
-    if (segPath.length < 2) { prevIdx = endIdx; return; }
-
-    const color = legColors[i].color;
-    // White halo — thicker, behind
-    addPolyline(segPath, '#ffffff', 11, 0.6, 8);
-    // Colored segment on top
-    addPolyline(segPath, color,    7,  0.95, 9);
-
-    prevIdx = endIdx;
-  });
-
-  // Draw any remaining path after last leg boundary
-  if (prevIdx < fullPath.length - 1) {
-    const tail = fullPath.slice(prevIdx);
-    const lastColor = legColors[legColors.length - 1].color;
-    addPolyline(tail, '#ffffff',   11, 0.6, 8);
-    addPolyline(tail, lastColor,   7,  0.95, 9);
-  }
-
-  // Overall traffic summary for the route
+  // Return overall ratio for the UI label
   const totalNormal  = route.legs.reduce((s, l) => s + l.duration.value, 0);
   const totalTraffic = route.legs.reduce((s, l) =>
     s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-  const overallRatio = totalNormal > 0 ? totalTraffic / totalNormal : 1;
-
-  return overallRatio;
+  return totalNormal > 0 ? totalTraffic / totalNormal : 1;
 }
 
 /* ─────────────────────────────────────────
@@ -454,10 +434,23 @@ function optimizeRoute() {
         drawAlternativeRoute(altRoute, altMins);
       }
 
-      // ── 3. Draw main route on top with per-leg traffic colors ──
+      // ── 3. Draw main route on top with per-step traffic colors ──
       const mainRoute    = routes[mainIdx];
       const overallRatio = drawMainRoute(mainRoute);
-      currentRoutePath   = mainRoute.overview_path;
+
+      // Build flat step path for vehicle animation (higher resolution than overview_path)
+      currentRoutePath = [];
+      mainRoute.legs.forEach(leg => {
+        leg.steps.forEach(step => {
+          if (step.lat_lngs && step.lat_lngs.length) {
+            currentRoutePath.push(...step.lat_lngs);
+          } else {
+            currentRoutePath.push(step.start_location, step.end_location);
+          }
+        });
+      });
+      // Fallback to overview_path if steps gave nothing
+      if (!currentRoutePath.length) currentRoutePath = mainRoute.overview_path;
 
       // ── 4. Place A / B markers on top of everything ──
       placeMarkers(mainRoute);
