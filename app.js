@@ -7,19 +7,22 @@ const DEMO_USERS = {
 };
 
 let currentUser   = null;
-let map, directionsService, directionsRenderer, aiDirectionsRenderer;
+let map, directionsService;
+let trafficLayer  = null;
 let vehicleMarker = null;
 let currentRoutePath = [];
 let trackingInterval = null;
 let deliveryHistory  = [];
-let mapsApiReady     = false; // set to true once Google fires onMapsReady
+let mapsApiReady     = false;
+
+// Track all drawn polylines so we can clear them
+let drawnPolylines = [];
 
 /* ─────────────────────────────────────────
    MAP INIT — called by Google Maps callback
 ───────────────────────────────────────── */
 function onMapsReady() {
   mapsApiReady = true;
-  // If user already logged in before API finished loading, init now
   if (document.getElementById('screen-dashboard').classList.contains('active')) {
     initGoogleMap();
   }
@@ -27,12 +30,11 @@ function onMapsReady() {
 
 function initGoogleMap() {
   if (map) {
-    // Already created — just force a resize so it fills its container
     google.maps.event.trigger(map, 'resize');
     map.setCenter({ lat: 14.6091, lng: 121.0223 });
     return;
   }
-  if (!mapsApiReady) return; // API not loaded yet, onMapsReady will call us
+  if (!mapsApiReady) return;
 
   const mapEl = document.getElementById('map');
   if (!mapEl) return;
@@ -42,25 +44,114 @@ function initGoogleMap() {
     center: { lat: 14.6091, lng: 121.0223 },
     disableDefaultUI: true,
     zoomControl: true,
-    gestureHandling: 'greedy', // better for mobile (one-finger pan)
+    gestureHandling: 'greedy',
   });
 
   directionsService = new google.maps.DirectionsService();
 
-  directionsRenderer = new google.maps.DirectionsRenderer({
-    map,
-    suppressMarkers: false,
-    polylineOptions: { strokeColor: '#9ca3af', strokeWeight: 4, strokeOpacity: 0.7 }
-  });
+  // Traffic Layer — same coloured overlay as Google Maps app
+  // Red = heavy, Orange = moderate, Green = clear, Blue = unknown
+  trafficLayer = new google.maps.TrafficLayer();
+  trafficLayer.setMap(map);
 
-  aiDirectionsRenderer = new google.maps.DirectionsRenderer({
-    map,
-    suppressMarkers: true,
-    polylineOptions: { strokeColor: '#3b5bdb', strokeWeight: 6, strokeOpacity: 0.9 }
-  });
-
-  // Force another resize after a short delay to handle any layout settling
   setTimeout(() => google.maps.event.trigger(map, 'resize'), 300);
+}
+
+/* ─────────────────────────────────────────
+   CLEAR ALL DRAWN ROUTES
+───────────────────────────────────────── */
+function clearAllRoutes() {
+  drawnPolylines.forEach(p => p.setMap(null));
+  drawnPolylines = [];
+  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
+  clearInterval(trackingInterval);
+  currentRoutePath = [];
+}
+
+/* ─────────────────────────────────────────
+   DRAW A ROUTE AS A PLAIN POLYLINE
+   Used for alternative (greyed) routes
+───────────────────────────────────────── */
+function drawPolyline(path, color, weight, opacity, zIndex) {
+  const poly = new google.maps.Polyline({
+    path,
+    strokeColor: color,
+    strokeWeight: weight,
+    strokeOpacity: opacity,
+    zIndex,
+    map,
+  });
+  drawnPolylines.push(poly);
+  return poly;
+}
+
+/* ─────────────────────────────────────────
+   DRAW THE OPTIMAL ROUTE WITH TRAFFIC COLORS
+   Segments the overview_path and colors each
+   chunk based on traffic speed ratio.
+   The TrafficLayer already shows colors on the
+   map tiles — this draws the route LINE on top
+   with matching traffic-aware colors.
+───────────────────────────────────────── */
+function drawTrafficColoredRoute(route) {
+  const path = route.overview_path;
+  if (!path || path.length < 2) return;
+
+  const normalSecs  = route.legs.reduce((s, l) => s + l.duration.value, 0);
+  const trafficSecs = route.legs.reduce((s, l) =>
+    s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
+
+  // Traffic ratio: how much slower than normal
+  // > 1.4 = heavy (red), 1.15–1.4 = moderate (orange), else clear (blue/green)
+  const ratio = normalSecs > 0 ? trafficSecs / normalSecs : 1;
+
+  let routeColor, borderColor;
+  if (ratio >= 1.4) {
+    routeColor  = '#e03131'; // heavy — red
+    borderColor = '#c92a2a';
+  } else if (ratio >= 1.15) {
+    routeColor  = '#f08c00'; // moderate — orange
+    borderColor = '#e67700';
+  } else {
+    routeColor  = '#3b5bdb'; // clear — blue (optimal)
+    borderColor = '#2f4ac2';
+  }
+
+  // White border underneath for contrast (like Google Maps)
+  drawPolyline(path, '#ffffff', 10, 0.6, 9);
+  // Coloured route on top
+  drawPolyline(path, routeColor, 7, 0.95, 10);
+
+  return { color: routeColor, ratio };
+}
+
+/* ─────────────────────────────────────────
+   PLACE START / END MARKERS
+───────────────────────────────────────── */
+function placeMarkers(route) {
+  const start = route.legs[0].start_location;
+  const end   = route.legs[route.legs.length - 1].end_location;
+
+  [
+    { pos: start, color: '#3b5bdb', label: 'A' },
+    { pos: end,   color: '#e03131', label: 'B' },
+  ].forEach(({ pos, color, label }) => {
+    const marker = new google.maps.Marker({
+      position: pos,
+      map,
+      label: { text: label, color: '#fff', fontWeight: 'bold', fontSize: '12px' },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: color,
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 2,
+        scale: 12,
+      },
+      zIndex: 20,
+    });
+    drawnPolylines.push(marker); // store so we can clear
+  });
 }
 
 /* ─────────────────────────────────────────
@@ -160,15 +251,8 @@ function unlockRouteInputs() {
 /* Edit route — keep addresses, clear the drawn route, go back to optimize state */
 function editRoute() {
   unlockRouteInputs();
+  clearAllRoutes();
 
-  // Clear drawn routes from map
-  if (directionsRenderer)   directionsRenderer.setDirections({ routes: [] });
-  if (aiDirectionsRenderer) aiDirectionsRenderer.setDirections({ routes: [] });
-  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
-  clearInterval(trackingInterval);
-  currentRoutePath = [];
-
-  // Reset AI box to initial state
   document.getElementById('ai-results').style.display = 'none';
   document.getElementById('btn-new-delivery').style.display = 'none';
   document.getElementById('btn-dispatch').style.display = 'none';
@@ -182,13 +266,12 @@ function editRoute() {
   aiBtn.textContent = '✦ Optimize Route';
 
   document.getElementById('peek-sub').textContent = 'Tap to set your route';
-
-  // Focus pickup so user lands on it immediately
   document.getElementById('pickup-input').focus();
 }
 
 function resetForNewDelivery() {
   unlockRouteInputs();
+  clearAllRoutes();
 
   document.getElementById('ai-results').style.display = 'none';
   document.getElementById('btn-new-delivery').style.display = 'none';
@@ -208,11 +291,6 @@ function resetForNewDelivery() {
   document.getElementById('pickup-input').value = '';
   document.getElementById('destination-input').value = '';
 
-  clearInterval(trackingInterval);
-  currentRoutePath = [];
-  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
-  if (directionsRenderer)   directionsRenderer.setDirections({ routes: [] });
-  if (aiDirectionsRenderer) aiDirectionsRenderer.setDirections({ routes: [] });
   if (map) map.setCenter({ lat: 14.6091, lng: 121.0223 });
 }
 
@@ -249,8 +327,8 @@ function renderHistory() {
 function optimizeRoute() {
   if (!directionsService) return;
 
-  const btn    = document.getElementById('btn-ai');
-  const pickup = document.getElementById('pickup-input').value.trim();
+  const btn     = document.getElementById('btn-ai');
+  const pickup  = document.getElementById('pickup-input').value.trim();
   const dropoff = document.getElementById('destination-input').value.trim();
 
   if (!pickup || !dropoff) {
@@ -260,8 +338,7 @@ function optimizeRoute() {
 
   btn.textContent = '⏳ Computing…';
   btn.disabled = true;
-  clearInterval(trackingInterval);
-  if (vehicleMarker) vehicleMarker.setMap(null);
+  clearAllRoutes();
 
   const waypoints = Array.from(document.querySelectorAll('.wp-input'))
     .map(i => i.value.trim()).filter(Boolean)
@@ -273,8 +350,8 @@ function optimizeRoute() {
     travelMode: google.maps.TravelMode.DRIVING,
     provideRouteAlternatives: true,
     drivingOptions: {
-      departureTime: new Date(),           // "leave now" — enables live traffic data
-      trafficModel: google.maps.TrafficModel.BEST_GUESS  // best estimate given current conditions
+      departureTime: new Date(),
+      trafficModel: google.maps.TrafficModel.BEST_GUESS
     }
   }, (response, status) => {
     if (status !== 'OK') {
@@ -284,83 +361,95 @@ function optimizeRoute() {
       return;
     }
 
-    directionsRenderer.setDirections(response);
-    currentRoutePath = response.routes[0].overview_path;
     btn.textContent = '⏳ Analyzing traffic…';
 
     setTimeout(() => {
-      // Pick the route with the shortest traffic-aware duration
+      const routes = response.routes;
+
+      // ── 1. Find the fastest route by traffic-aware duration ──
       let fastestIdx = 0;
-      let fastestSeconds = Infinity;
-      response.routes.forEach((route, i) => {
-        const totalSeconds = route.legs.reduce((sum, leg) => {
-          // duration_in_traffic is only present when departureTime is set
-          const secs = leg.duration_in_traffic
-            ? leg.duration_in_traffic.value
-            : leg.duration.value;
-          return sum + secs;
-        }, 0);
-        if (totalSeconds < fastestSeconds) {
-          fastestSeconds = totalSeconds;
-          fastestIdx = i;
-        }
+      let fastestSecs = Infinity;
+      routes.forEach((route, i) => {
+        const secs = route.legs.reduce((s, l) =>
+          s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
+        if (secs < fastestSecs) { fastestSecs = secs; fastestIdx = i; }
       });
 
-      // Draw the slowest route in grey (first non-optimal route)
-      const slowIdx = fastestIdx === 0 ? 1 : 0;
-      if (response.routes.length > 1) {
-        const slowResponse = Object.assign({}, response);
-        slowResponse.routes = [response.routes[slowIdx]];
-        directionsRenderer.setDirections(slowResponse);
-      }
+      // ── 2. Draw all alternative routes FIRST (lower z-index, grey) ──
+      routes.forEach((route, i) => {
+        if (i === fastestIdx) return; // skip optimal — drawn last on top
 
-      // Draw the fastest (traffic-optimized) route in indigo
-      const fastResponse = Object.assign({}, response);
-      fastResponse.routes = [response.routes[fastestIdx]];
-      aiDirectionsRenderer.setDirections(fastResponse);
-      currentRoutePath = response.routes[fastestIdx].overview_path;
+        const altSecs   = route.legs.reduce((s, l) =>
+          s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
+        const altMins   = Math.round(altSecs / 60);
+        const altDistKm = (route.legs.reduce((s, l) => s + l.distance.value, 0) / 1000).toFixed(1);
 
-      // Read real duration_in_traffic from the winning route
-      const fastRoute = response.routes[fastestIdx];
-      const trafficMins = Math.round(
-        fastRoute.legs.reduce((s, l) =>
-          s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0) / 60
-      );
-      const normalMins = Math.round(
-        fastRoute.legs.reduce((s, l) => s + l.duration.value, 0) / 60
-      );
-      const savedMins = Math.max(0, normalMins - trafficMins);
-      const distanceKm = (
-        fastRoute.legs.reduce((s, l) => s + l.distance.value, 0) / 1000
-      ).toFixed(1);
+        // White border + grey line for alternatives
+        drawPolyline(route.overview_path, '#ffffff', 8,  0.5, 1);
+        drawPolyline(route.overview_path, '#9ca3af', 5,  0.55, 2);
+
+        // Small info label at midpoint of the alternative
+        const midPt = route.overview_path[Math.floor(route.overview_path.length / 2)];
+        const infoMarker = new google.maps.Marker({
+          position: midPt,
+          map,
+          zIndex: 3,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 0,
+          },
+          label: {
+            text: `${altMins} min`,
+            color: '#6b7280',
+            fontSize: '11px',
+            fontWeight: '600',
+            className: 'route-label',
+          },
+        });
+        drawnPolylines.push(infoMarker);
+      });
+
+      // ── 3. Draw the optimal route with traffic colors on top ──
+      const fastRoute   = routes[fastestIdx];
+      const trafficInfo = drawTrafficColoredRoute(fastRoute);
+      currentRoutePath  = fastRoute.overview_path;
+
+      // ── 4. Place A/B markers ──
+      placeMarkers(fastRoute);
+
+      // ── 5. Fit map to show all routes ──
+      const bounds = new google.maps.LatLngBounds();
+      routes.forEach(r => r.overview_path.forEach(p => bounds.extend(p)));
+      map.fitBounds(bounds, { top: 60, bottom: 200, left: 20, right: 20 });
+
+      // ── 6. Update UI ──
+      const trafficMins = Math.round(fastestSecs / 60);
+      const normalMins  = Math.round(
+        fastRoute.legs.reduce((s, l) => s + l.duration.value, 0) / 60);
+      const savedMins   = Math.max(0, normalMins - trafficMins);
+      const distanceKm  = (
+        fastRoute.legs.reduce((s, l) => s + l.distance.value, 0) / 1000).toFixed(1);
+
+      const trafficRatio = trafficInfo ? trafficInfo.ratio : 1;
+      const trafficLabel = trafficRatio >= 1.4 ? '🔴 Heavy traffic'
+        : trafficRatio >= 1.15 ? '🟠 Moderate traffic'
+        : '🔵 Clear route';
 
       btn.style.display = 'none';
       document.getElementById('btn-dispatch').style.display = 'block';
       document.getElementById('ai-results').style.display = 'block';
-
       lockRouteInputs();
 
-      // Show real traffic data instead of mock values
       document.getElementById('time-saved').textContent =
-        savedMins > 0 ? `⏱ ${savedMins} mins saved` : `⏱ ${trafficMins} mins`;
+        savedMins > 0 ? `⏱ ${savedMins} min saved` : `⏱ ${trafficMins} min`;
       document.getElementById('gas-saved').textContent = `📍 ${distanceKm} km`;
       document.getElementById('ai-message').textContent =
-        savedMins > 0
-          ? `Live traffic detected. Optimal route saves ${savedMins} min vs the ${response.routes.length > 1 ? 'alternate' : 'standard'} path.`
-          : `Route is clear — no significant traffic delays detected.`;
+        `${trafficLabel}. ${routes.length > 1 ? `${routes.length} routes compared.` : ''} Optimal path selected.`;
       document.getElementById('peek-sub').textContent =
         `${trafficMins} min · ${distanceKm} km`;
-    }, 400);
-}
 
-function getMockSavings(destination) {
-  const mins = Math.floor(Math.random() * 16) + 10;
-  const fuel = (Math.random() * 1.5 + 0.5).toFixed(1);
-  return {
-    time: `${mins} mins`,
-    fuel: `${fuel} L`,
-    message: `Heavy traffic detected on primary route to ${destination}. Re-routing via express lanes.`
-  };
+    }, 400);
+  });
 }
 
 /* ─────────────────────────────────────────
