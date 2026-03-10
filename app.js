@@ -138,7 +138,58 @@ function addWaypoint() {
   container.appendChild(div);
 }
 
+/* Lock inputs after optimizing so user can't accidentally type mid-dispatch */
+function lockRouteInputs() {
+  document.getElementById('pickup-input').readOnly = true;
+  document.getElementById('destination-input').readOnly = true;
+  document.querySelectorAll('.wp-input').forEach(i => i.readOnly = true);
+  document.getElementById('btn-add-wp').style.display = 'none';
+  document.getElementById('btn-edit-route').style.display = 'inline-flex';
+  document.querySelector('.stop-card').classList.add('locked');
+}
+
+function unlockRouteInputs() {
+  document.getElementById('pickup-input').readOnly = false;
+  document.getElementById('destination-input').readOnly = false;
+  document.querySelectorAll('.wp-input').forEach(i => i.readOnly = false);
+  document.getElementById('btn-add-wp').style.display = 'inline-block';
+  document.getElementById('btn-edit-route').style.display = 'none';
+  document.querySelector('.stop-card').classList.remove('locked');
+}
+
+/* Edit route — keep addresses, clear the drawn route, go back to optimize state */
+function editRoute() {
+  unlockRouteInputs();
+
+  // Clear drawn routes from map
+  if (directionsRenderer)   directionsRenderer.setDirections({ routes: [] });
+  if (aiDirectionsRenderer) aiDirectionsRenderer.setDirections({ routes: [] });
+  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
+  clearInterval(trackingInterval);
+  currentRoutePath = [];
+
+  // Reset AI box to initial state
+  document.getElementById('ai-results').style.display = 'none';
+  document.getElementById('btn-new-delivery').style.display = 'none';
+  document.getElementById('btn-dispatch').style.display = 'none';
+  document.getElementById('btn-dispatch').textContent = '🚀 Dispatch & Track';
+  document.getElementById('btn-dispatch').disabled = false;
+  document.getElementById('btn-dispatch').style.background = '#1a7a2e';
+
+  const aiBtn = document.getElementById('btn-ai');
+  aiBtn.style.display = 'block';
+  aiBtn.disabled = false;
+  aiBtn.textContent = '✦ Optimize Route';
+
+  document.getElementById('peek-sub').textContent = 'Tap to set your route';
+
+  // Focus pickup so user lands on it immediately
+  document.getElementById('pickup-input').focus();
+}
+
 function resetForNewDelivery() {
+  unlockRouteInputs();
+
   document.getElementById('ai-results').style.display = 'none';
   document.getElementById('btn-new-delivery').style.display = 'none';
   document.getElementById('btn-dispatch').style.display = 'none';
@@ -158,7 +209,8 @@ function resetForNewDelivery() {
   document.getElementById('destination-input').value = '';
 
   clearInterval(trackingInterval);
-  if (vehicleMarker) vehicleMarker.setMap(null);
+  currentRoutePath = [];
+  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
   if (directionsRenderer)   directionsRenderer.setDirections({ routes: [] });
   if (aiDirectionsRenderer) aiDirectionsRenderer.setDirections({ routes: [] });
   if (map) map.setCenter({ lat: 14.6091, lng: 121.0223 });
@@ -243,6 +295,8 @@ function optimizeRoute() {
       btn.style.display = 'none';
       document.getElementById('btn-dispatch').style.display = 'block';
       document.getElementById('ai-results').style.display = 'block';
+
+      lockRouteInputs();
 
       const s = getMockSavings(dropoff);
       document.getElementById('time-saved').textContent = `⏱ ${s.time} saved`;
