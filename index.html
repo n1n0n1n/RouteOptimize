@@ -1,248 +1,738 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="theme-color" content="#4f46e5"/>
-  <title>RouteOptimize — Fleet Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteOptimize - AI-Powered Delivery Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="app">
+        
+        <!-- ========================================
+             LOGIN SCREEN
+        ======================================== -->
+        <div id="login-screen" class="screen active">
+            <div class="login-screen">
+                <div class="container" style="max-width: 28rem;">
+                    <div class="text-center mb-8">
+                        <div class="login-logo">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                                <path d="M15 18H9"></path>
+                                <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                                <circle cx="17" cy="18" r="2"></circle>
+                                <circle cx="7" cy="18" r="2"></circle>
+                            </svg>
+                        </div>
+                        <h1 class="login-title">RouteOptimize</h1>
+                        <p class="login-subtitle">AI-Powered Delivery Assistant</p>
+                    </div>
 
-  <!-- LOGIN SCREEN -->
-  <div id="screen-login" class="screen active">
-    <div class="login-layout">
-      <div class="login-left">
-        <div class="login-hero">
-          <div class="login-hero-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-          </div>
-          <h1>Intelligent Fleet Routing</h1>
-          <p>AI-powered dispatch optimization for modern delivery teams. Save time, reduce fuel costs, and delight customers.</p>
-          <div class="feature-pills">
-            <span class="feature-pill">🤖 AI Routing</span>
-            <span class="feature-pill">📍 Live Tracking</span>
-            <span class="feature-pill">📊 Analytics</span>
-          </div>
-        </div>
-      </div>
-      <div class="login-right">
-        <div class="login-card">
-          <div class="logo">
-            <div class="logo-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <h2>ROUTE OPTIMIZE</h2>
-          </div>
-          <p class="login-title">Welcome back</p>
-          <p class="login-subtitle">Sign in to your fleet dashboard</p>
-          <div class="input-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="login-email" placeholder="admin@demo.com" value="admin@demo.com" autocomplete="email"/>
-          </div>
-          <div class="input-group">
-            <label class="form-label">Password</label>
-            <input type="password" id="login-pw" placeholder="password123" value="password123" autocomplete="current-password"/>
-          </div>
-          <div class="forgot-pw" onclick="doForgotPw()">Forgot password?</div>
-          <button class="btn-primary" onclick="doLogin()">Sign In</button>
-          <div class="divider"><span>Or continue with</span></div>
-          <button class="btn-outline" onclick="doSSO()">🔐 Single Sign-On (SSO)</button>
-        </div>
-      </div>
-    </div>
-  </div>
+                    <div class="login-card">
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="switchTab('driver')">Driver Login</button>
+                            <button class="tab-btn" onclick="switchTab('admin')">Admin Login</button>
+                        </div>
 
-  <!-- MAIN DASHBOARD -->
-  <div id="screen-dashboard" class="screen">
+                        <div id="driver-tab" class="tab-content">
+                            <div class="input-group">
+                                <label class="input-label">Email</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon icon-md">
+                                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                    </svg>
+                                    <input type="email" class="input input-with-icon" placeholder="driver@example.com" value="john.driver@example.com">
+                                </div>
+                            </div>
 
-    <nav class="top-nav">
-      <div class="nav-left">
-        <div class="nav-logo">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div class="nav-links">
-          <a href="#" class="active" onclick="switchTab('dispatch', this); return false;">Dispatch</a>
-          <a href="#" onclick="switchTab('records', this); return false;">History</a>
-          <a href="#" onclick="switchTab('drivers', this); return false;">Fleet</a>
-          <a href="#" onclick="switchTab('settings', this); return false;">Settings</a>
-        </div>
-      </div>
-      <div class="nav-right">
-        <span class="pill-green">● System Online</span>
-        <span class="user-badge" id="user-display-role">USER</span>
-        <button class="icon-btn" onclick="doLogout()">Log Out</button>
-      </div>
-    </nav>
+                            <div class="input-group">
+                                <label class="input-label">Password</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon icon-md">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" class="input input-with-icon" placeholder="••••••••" value="password123">
+                                </div>
+                            </div>
 
-    <div class="main-content">
+                            <button class="btn btn-primary btn-full" onclick="login('driver')">
+                                Sign In as Driver
+                            </button>
+                        </div>
 
-      <!-- TAB: DISPATCH -->
-      <div id="tab-dispatch" class="tab-content active">
-        <div class="sidebar" id="main-sidebar" onclick="handleSidebarTap(event)">
-          <div class="route-section">
-            <h3>Active Route</h3>
-            <div class="stop-inputs">
-              <div class="stop pickup">
-                <span class="dot start"></span>
-                <input type="text" id="pickup-input" value="Quezon City, Metro Manila" placeholder="Pickup location" autocomplete="off"/>
-              </div>
-              <div id="waypoints-container"></div>
-              <div class="stop dropoff">
-                <span class="dot end"></span>
-                <input type="text" id="destination-input" value="Makati City, Metro Manila" placeholder="Drop-off location" autocomplete="off"/>
-              </div>
-            </div>
-            <button class="btn-text" onclick="addWaypoint()">＋ Add Waypoint</button>
+                        <div id="admin-tab" class="tab-content hidden">
+                            <div class="input-group">
+                                <label class="input-label">Admin Email</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon icon-md">
+                                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                    </svg>
+                                    <input type="email" class="input input-with-icon" placeholder="admin@example.com" value="admin@example.com">
+                                </div>
+                            </div>
 
-            <div class="ai-routing-box">
-              <button class="btn-ai" id="btn-ai" onclick="optimizeRoute()">✨ AI Optimize Route</button>
-              <button class="btn-ai btn-dispatch" id="btn-dispatch" style="display:none; background:#16a34a;" onclick="startLiveTracking()">🚀 Dispatch &amp; Track</button>
-              <div id="ai-results" style="display:none;">
-                <p style="font-size:13px; font-weight:600; margin-bottom:4px;" id="ai-status-text">Route Optimized!</p>
-                <div class="save-tags">
-                  <span class="save-tag" id="time-saved">⏱ 15 mins saved</span>
-                  <span class="save-tag" id="gas-saved">⛽ 1.2 L saved</span>
+                            <div class="input-group">
+                                <label class="input-label">Password</label>
+                                <div class="input-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="input-icon icon-md">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" class="input input-with-icon" placeholder="••••••••" value="admin123">
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary btn-full" onclick="login('admin')" style="background-color: var(--color-indigo-600);">
+                                Sign In as Admin
+                            </button>
+                        </div>
+
+                        <p class="text-center text-sm text-gray-600 mt-4">Demo credentials are pre-filled</p>
+                    </div>
+
+                    <div class="grid-3 mt-8 text-center" style="color: white;">
+                        <div>
+                            <div class="text-2xl font-bold">AI</div>
+                            <div class="text-xs" style="color: rgba(191, 219, 254, 1);">Smart Routes</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold">Real-time</div>
+                            <div class="text-xs" style="color: rgba(191, 219, 254, 1);">Updates</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold">15%</div>
+                            <div class="text-xs" style="color: rgba(191, 219, 254, 1);">Fuel Savings</div>
+                        </div>
+                    </div>
                 </div>
-                <p class="small-text" id="ai-message">Bypassing heavy traffic via alternate corridor.</p>
-                <button class="btn-outline" id="btn-new-delivery" style="display:none; margin-top:12px; width:100%; border-color:var(--primary); color:var(--primary);" onclick="resetForNewDelivery()">＋ New Delivery</button>
-              </div>
             </div>
-          </div>
-
-          <div class="vehicle-section">
-            <h3>Assign Asset</h3>
-            <div class="vehicle-grid">
-              <div class="vehicle-card active" onclick="selectVehicle(this)" data-vehicle="Standard Van">
-                <div class="v-icon">🚐</div>
-                <span>Standard Van</span>
-              </div>
-              <div class="vehicle-card" onclick="selectVehicle(this)" data-vehicle="Box Truck">
-                <div class="v-icon">🚛</div>
-                <span>Box Truck</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div class="map-area">
-          <div id="map"></div>
-        </div>
-      </div>
+        <!-- ========================================
+             DRIVER DASHBOARD
+        ======================================== -->
+        <div id="driver-dashboard" class="screen">
+            <div class="min-h-screen">
+                <div class="dashboard-header">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <p style="color: rgba(219, 234, 254, 1); font-size: 0.875rem;">Good morning,</p>
+                            <h1 class="text-2xl font-bold">John Driver</h1>
+                            <p style="color: rgba(219, 234, 254, 1); font-size: 0.875rem; margin-top: 0.25rem;">ID: DRV-2026-456 • VAN-001</p>
+                        </div>
+                        <div style="width: 3rem; height: 3rem; background-color: rgba(255, 255, 255, 0.2); border-radius: 9999px; display: flex; align-items: center; justify-content: center;">
+                            <span class="text-lg font-semibold">JD</span>
+                        </div>
+                    </div>
 
-      <!-- TAB: HISTORY -->
-      <div id="tab-records" class="tab-content">
-        <div class="history-page">
-          <h2>Dispatch History</h2>
-          <div id="history-list">
-            <div class="empty-state">
-              <div class="empty-icon">📊</div>
-              <p>No past dispatch records found.<br>Complete a delivery to see it here.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 16h6"></path>
+                                    <path d="M16 8h6"></path>
+                                    <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                    <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                    <circle cx="11" cy="12" r="2"></circle>
+                                    <path d="M11 14v6"></path>
+                                    <path d="M11 4v6"></path>
+                                </svg>
+                                Active Deliveries
+                            </div>
+                            <div class="stat-value">8</div>
+                            <div class="stat-subtext">of 24 total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                                    <polyline points="16 7 22 7 22 13"></polyline>
+                                </svg>
+                                Route Efficiency
+                            </div>
+                            <div class="stat-value">94%</div>
+                            <div class="stat-subtext">+5% vs avg</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="3" x2="15" y1="22" y2="22"></line>
+                                    <line x1="4" x2="14" y1="9" y2="9"></line>
+                                    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                                    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                                </svg>
+                                Fuel Saved Today
+                            </div>
+                            <div class="stat-value">2.3L</div>
+                            <div class="stat-subtext">17% reduction</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Time Saved
+                            </div>
+                            <div class="stat-value">23min</div>
+                            <div class="stat-subtext">vs standard</div>
+                        </div>
+                    </div>
+                </div>
 
-      <!-- TAB: FLEET -->
-      <div id="tab-drivers" class="tab-content">
-        <div class="fleet-page">
-          <h2>Fleet Overview</h2>
-          <div class="fleet-grid">
-            <div class="fleet-card">
-              <div class="fleet-card-icon">🚐</div>
-              <h4>Van — Unit 01</h4>
-              <p>Metro Manila Route</p>
-              <span class="status-badge status-available">Available</span>
-            </div>
-            <div class="fleet-card">
-              <div class="fleet-card-icon">🚛</div>
-              <h4>Box Truck — Unit 02</h4>
-              <p>Makati Express</p>
-              <span class="status-badge status-busy">En Route</span>
-            </div>
-            <div class="fleet-card">
-              <div class="fleet-card-icon">🚐</div>
-              <h4>Van — Unit 03</h4>
-              <p>Quezon City Route</p>
-              <span class="status-badge status-available">Available</span>
-            </div>
-            <div class="fleet-card">
-              <div class="fleet-card-icon">🚚</div>
-              <h4>Delivery Van — Unit 04</h4>
-              <p>Pasig City Route</p>
-              <span class="status-badge status-busy">En Route</span>
-            </div>
-          </div>
-        </div>
-      </div>
+                <div class="content" style="margin-top: -1.5rem;">
+                    <!-- TSP Optimization Card -->
+                    <div class="card mb-4" style="background: linear-gradient(to right, var(--color-green-50), #d1fae5); border: 1px solid var(--color-green-200);">
+                        <div class="card-body">
+                            <div style="display: flex; gap: 0.75rem;">
+                                <div style="width: 2.5rem; height: 2.5rem; background-color: var(--color-green-600); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                                        <polyline points="16 7 22 7 22 13"></polyline>
+                                    </svg>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 class="font-semibold text-gray-800 mb-1">TSP Route Optimized</h3>
+                                    <p class="text-sm text-gray-600 mb-2">Today's route is 4.2 km shorter (15%) than standard sequence. Saving fuel & time.</p>
+                                    <div class="grid-3" style="text-align: center;">
+                                        <div style="background-color: rgba(255, 255, 255, 0.6); border-radius: 0.375rem; padding: 0.25rem;">
+                                            <p class="text-xs text-gray-600">Distance</p>
+                                            <p class="text-sm font-semibold text-gray-800">-15%</p>
+                                        </div>
+                                        <div style="background-color: rgba(255, 255, 255, 0.6); border-radius: 0.375rem; padding: 0.25rem;">
+                                            <p class="text-xs text-gray-600">Fuel</p>
+                                            <p class="text-sm font-semibold text-gray-800">-17%</p>
+                                        </div>
+                                        <div style="background-color: rgba(255, 255, 255, 0.6); border-radius: 0.375rem; padding: 0.25rem;">
+                                            <p class="text-xs text-gray-600">Time</p>
+                                            <p class="text-sm font-semibold text-gray-800">-23min</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-      <!-- TAB: SETTINGS -->
-      <div id="tab-settings" class="tab-content">
-        <div class="settings-layout">
-          <div class="settings-sidebar">
-            <div class="s-nav active">Account Profile</div>
-            <div class="s-nav">Preferences</div>
-            <div class="s-nav">System Config</div>
-          </div>
-          <div class="settings-main">
-            <h2>Account Profile</h2>
-            <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" id="prof-fname" readonly/>
+                    <!-- Active Route Card -->
+                    <div class="card mb-4" style="box-shadow: var(--shadow-md);">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <h2 class="font-semibold text-gray-800">Current Route</h2>
+                                <span class="badge badge-green">Active</span>
+                            </div>
+                            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                                <div style="width: 2.5rem; height: 2.5rem; background-color: var(--color-blue-100); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600);">
+                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                    </svg>
+                                </div>
+                                <div style="flex: 1;">
+                                    <p class="font-medium text-gray-800">Downtown Loop - Route A</p>
+                                    <p class="text-sm text-gray-500">8 stops • 24.3 km • ML Optimized</p>
+                                    <p class="text-sm text-green-600 mt-1">Projected ETA: 2:45 PM</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-full" onclick="navigate('active-route')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                Start Navigation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Today's Deliveries -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="font-semibold text-gray-800">Today's Deliveries</h2>
+                        <button class="text-sm text-blue-600" onclick="navigate('packages')" style="border: none; background: none; cursor: pointer;">View All</button>
+                    </div>
+
+                    <div class="delivery-card" onclick="navigate('package-detail')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <span class="badge badge-blue text-xs">Next Stop</span>
+                                    <span class="text-sm text-gray-500">10:30 AM</span>
+                                </div>
+                                <p class="font-medium text-gray-800 mb-1">142 Market St, Downtown</p>
+                                <p class="text-sm text-gray-500">3 packages • 0.8 km</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0;">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="delivery-card" onclick="navigate('package-detail')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <span class="text-sm text-gray-500">11:15 AM</span>
+                                </div>
+                                <p class="font-medium text-gray-800 mb-1">89 Oak Avenue, Westside</p>
+                                <p class="text-sm text-gray-500">2 packages • 3.2 km</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0;">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="delivery-card" onclick="navigate('package-detail')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <span class="text-sm text-gray-500">12:00 PM</span>
+                                </div>
+                                <p class="font-medium text-gray-800 mb-1">501 Elm Street, Northend</p>
+                                <p class="text-sm text-gray-500">1 package • 5.1 km</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0;">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- AI Insight -->
+                    <div class="alert alert-info mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600); flex-shrink: 0;">
+                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                            <polyline points="16 7 22 7 22 13"></polyline>
+                        </svg>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 text-sm mb-1">AI Insight</h3>
+                            <p class="text-sm text-gray-600">Traffic detected on Route 45. Alternative route will save 8 minutes and 2.3L of fuel.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Nav -->
+                <div class="bottom-nav">
+                    <div class="bottom-nav-grid">
+                        <button class="bottom-nav-item active" onclick="navigate('driver-dashboard')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span class="bottom-nav-label">Home</span>
+                        </button>
+                        <button class="bottom-nav-item" onclick="navigate('packages')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 16h6"></path>
+                                <path d="M16 8h6"></path>
+                                <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                <circle cx="11" cy="12" r="2"></circle>
+                                <path d="M11 14v6"></path>
+                                <path d="M11 4v6"></path>
+                            </svg>
+                            <span class="bottom-nav-label">Packages</span>
+                        </button>
+                        <button class="bottom-nav-item" onclick="navigate('active-route')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                            </svg>
+                            <span class="bottom-nav-label">Navigate</span>
+                        </button>
+                        <button class="bottom-nav-item" onclick="navigate('settings')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span class="bottom-nav-label">Settings</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-              <label>Login Email</label>
-              <input type="text" id="prof-email" readonly/>
-            </div>
-          </div>
         </div>
-      </div>
+
+        <!-- ========================================
+             ACTIVE ROUTE SCREEN
+        ======================================== -->
+        <div id="active-route" class="screen">
+            <div class="min-h-screen">
+                <div class="map-simulation">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);">
+                        <button class="back-btn" onclick="navigate('driver-dashboard')" style="background: white; border-radius: 9999px; box-shadow: var(--shadow-lg);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div style="position: absolute; top: 5rem; left: 50%; transform: translateX(-50%);">
+                        <div style="background: var(--color-blue-600); color: white; padding: 0.5rem 1rem; border-radius: 9999px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                            </svg>
+                            <span class="font-medium text-sm">Navigating...</span>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div style="width: 4rem; height: 4rem; background-color: var(--color-blue-100); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 2rem;">
+                                        ➡️
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <p class="text-sm text-gray-500 mb-1">In 200m</p>
+                                        <p class="font-semibold text-gray-800">Turn right onto Oak Avenue</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <!-- Real-time Stats -->
+                    <div class="grid-3 mb-4">
+                        <div class="card">
+                            <div class="card-body" style="text-align: center; padding: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600); margin: 0 auto 0.25rem;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <p class="text-xs text-gray-500">ETA</p>
+                                <p class="font-semibold text-gray-800 text-sm">10:45 AM</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" style="text-align: center; padding: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-green-600); margin: 0 auto 0.25rem;">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <p class="text-xs text-gray-500">Distance</p>
+                                <p class="font-semibold text-gray-800 text-sm">3.2 km</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" style="text-align: center; padding: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-orange-600); margin: 0 auto 0.25rem;">
+                                    <line x1="3" x2="15" y1="22" y2="22"></line>
+                                    <line x1="4" x2="14" y1="9" y2="9"></line>
+                                    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                                    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                                </svg>
+                                <p class="text-xs text-gray-500">Fuel</p>
+                                <p class="font-semibold text-gray-800 text-sm">0.4 L</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Optimization Alert -->
+                    <div class="alert alert-success mb-4">
+                        <div style="width: 2rem; height: 2rem; background-color: var(--color-green-600); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                <h3 class="font-semibold text-gray-800 text-sm">Route Optimized</h3>
+                                <span class="badge badge-green text-xs">Live</span>
+                            </div>
+                            <p class="text-sm text-gray-600">AI detected lighter traffic on alternate route. Saving 5 min & 1.2L fuel.</p>
+                        </div>
+                    </div>
+
+                    <!-- Next Stop -->
+                    <div class="card" style="border: 2px solid var(--color-blue-200);">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <h3 class="font-semibold text-gray-800">Next Stop</h3>
+                                <span class="badge badge-blue">Stop 1 of 8</span>
+                            </div>
+
+                            <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600); flex-shrink: 0; margin-top: 0.125rem;">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-gray-800">142 Market Street</p>
+                                    <p class="text-sm text-gray-500">Downtown, Floor 3, Unit 302</p>
+                                </div>
+                            </div>
+
+                            <div style="padding: 0.75rem; background-color: var(--color-blue-50); border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                                <p class="text-sm text-gray-600 mb-2"><strong>AI Drop-off Zone:</strong> Safe parking detected 20m ahead on right side</p>
+                            </div>
+
+                            <div class="grid-2">
+                                <button class="btn btn-outline" onclick="navigate('package-detail')">View Details</button>
+                                <button class="btn btn-success">Arrived</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             PACKAGES SCREEN
+        ======================================== -->
+        <div id="packages" class="screen">
+            <div class="min-h-screen">
+                <div class="header">
+                    <div class="header-content">
+                        <button class="back-btn" onclick="navigate('driver-dashboard')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <h1 class="text-xl font-semibold text-gray-800">Package Management</h1>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <!-- Summary Stats -->
+                    <div class="grid-3 mb-4" style="text-align: center;">
+                        <div>
+                            <p class="text-2xl font-bold text-gray-800">24</p>
+                            <p class="text-xs text-gray-500">Total</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-green-600">8</p>
+                            <p class="text-xs text-gray-500">Active</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-blue-600">16</p>
+                            <p class="text-xs text-gray-500">Remaining</p>
+                        </div>
+                    </div>
+
+                    <h2 class="font-semibold text-gray-800 mb-3">Active Packages (8)</h2>
+
+                    <!-- Package 1 -->
+                    <div class="card mb-3" onclick="navigate('package-detail')" style="cursor: pointer;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <div style="width: 3rem; height: 3rem; background-color: var(--color-blue-100); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600);">
+                                            <path d="M16 16h6"></path>
+                                            <path d="M16 8h6"></path>
+                                            <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                            <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                            <circle cx="11" cy="12" r="2"></circle>
+                                            <path d="M11 14v6"></path>
+                                            <path d="M11 4v6"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 mb-1">Sarah Johnson</p>
+                                        <p class="text-sm text-gray-500">PKG-2026-001234</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
+                                    <span class="badge badge-green text-xs">ready</span>
+                                    <span class="badge badge-red text-xs">high</span>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0; margin-top: 0.125rem;">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <p class="text-sm text-gray-600" style="flex: 1;">142 Market Street, Downtown</p>
+                            </div>
+
+                            <div class="grid-3" style="padding-top: 0.75rem; border-top: 1px solid var(--color-gray-200); text-align: center;">
+                                <div>
+                                    <p class="text-xs text-gray-500">ETA</p>
+                                    <p class="text-sm font-medium text-gray-800">10:30 AM</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Weight</p>
+                                    <p class="text-sm font-medium text-gray-800">2.5 kg</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Items</p>
+                                    <p class="text-sm font-medium text-gray-800">1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Package 2 -->
+                    <div class="card mb-3" onclick="navigate('package-detail')" style="cursor: pointer;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <div style="width: 3rem; height: 3rem; background-color: var(--color-blue-100); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600);">
+                                            <path d="M16 16h6"></path>
+                                            <path d="M16 8h6"></path>
+                                            <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                            <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                            <circle cx="11" cy="12" r="2"></circle>
+                                            <path d="M11 14v6"></path>
+                                            <path d="M11 4v6"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 mb-1">Tech Solutions Inc.</p>
+                                        <p class="text-sm text-gray-500">PKG-2026-001235</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
+                                    <span class="badge badge-green text-xs">ready</span>
+                                    <span class="badge badge-blue text-xs">normal</span>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0; margin-top: 0.125rem;">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <p class="text-sm text-gray-600" style="flex: 1;">142 Market Street, Downtown</p>
+                            </div>
+
+                            <div class="grid-3" style="padding-top: 0.75rem; border-top: 1px solid var(--color-gray-200); text-align: center;">
+                                <div>
+                                    <p class="text-xs text-gray-500">ETA</p>
+                                    <p class="text-sm font-medium text-gray-800">10:30 AM</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Weight</p>
+                                    <p class="text-sm font-medium text-gray-800">5.2 kg</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Items</p>
+                                    <p class="text-sm font-medium text-gray-800">1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Package 3 -->
+                    <div class="card mb-3" onclick="navigate('package-detail')" style="cursor: pointer;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <div style="width: 3rem; height: 3rem; background-color: var(--color-blue-100); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-blue-600);">
+                                            <path d="M16 16h6"></path>
+                                            <path d="M16 8h6"></path>
+                                            <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                            <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                            <circle cx="11" cy="12" r="2"></circle>
+                                            <path d="M11 14v6"></path>
+                                            <path d="M11 4v6"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 mb-1">Mike Chen</p>
+                                        <p class="text-sm text-gray-500">PKG-2026-001236</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
+                                    <span class="badge badge-blue text-xs">in-transit</span>
+                                    <span class="badge badge-blue text-xs">normal</span>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-gray-400); flex-shrink: 0; margin-top: 0.125rem;">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <p class="text-sm text-gray-600" style="flex: 1;">89 Oak Avenue, Westside</p>
+                            </div>
+
+                            <div class="grid-3" style="padding-top: 0.75rem; border-top: 1px solid var(--color-gray-200); text-align: center;">
+                                <div>
+                                    <p class="text-xs text-gray-500">ETA</p>
+                                    <p class="text-sm font-medium text-gray-800">11:15 AM</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Weight</p>
+                                    <p class="text-sm font-medium text-gray-800">1.8 kg</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Items</p>
+                                    <p class="text-sm font-medium text-gray-800">1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Loading Tip -->
+                    <div class="alert" style="background: linear-gradient(to right, var(--color-purple-50), var(--color-blue-50)); border-left: 4px solid var(--color-purple-600);">
+                        <div style="width: 2rem; height: 2rem; background-color: var(--color-purple-600); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                <line x1="12" x2="12" y1="22" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 text-sm mb-1">Smart Loading Tip</h3>
+                            <p class="text-sm text-gray-600">Load packages PKG-001238, 001234 near door for first 2 stops. This optimizes loading efficiency by 23%.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Nav -->
+                <div class="bottom-nav">
+                    <div class="bottom-nav-grid">
+                        <button class="bottom-nav-item" onclick="navigate('driver-dashboard')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span class="bottom-nav-label">Home</span>
+                        </button>
+                        <button class="bottom-nav-item active" onclick="navigate('packages')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 16h6"></path>
+                                <path d="M16 8h6"></path>
+                                <path d="M8 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"></path>
+                                <path d="M14 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"></path>
+                                <circle cx="11" cy="12" r="2"></circle>
+                                <path d="M11 14v6"></path>
+                                <path d="M11 4v6"></path>
+                            </svg>
+                            <span class="bottom-nav-label">Packages</span>
+                        </button>
+                        <button class="bottom-nav-item" onclick="navigate('active-route')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                            </svg>
+                            <span class="bottom-nav-label">Navigate</span>
+                        </button>
+                        <button class="bottom-nav-item" onclick="navigate('settings')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span class="bottom-nav-label">Settings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue in next message due to length... -->
 
     </div>
 
-    <!-- Mobile Bottom Navigation -->
-    <nav class="mobile-bottom-nav">
-      <a href="#" class="active" id="mn-dispatch" onclick="mobileNav('dispatch', this); return false;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-        </svg>
-        Dispatch
-      </a>
-      <a href="#" id="mn-records" onclick="mobileNav('records', this); return false;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-        History
-      </a>
-      <a href="#" id="mn-drivers" onclick="mobileNav('drivers', this); return false;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-        </svg>
-        Fleet
-      </a>
-      <a href="#" id="mn-settings" onclick="mobileNav('settings', this); return false;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-        Settings
-      </a>
-    </nav>
-
-  </div>
-
-  <!-- GOOGLE MAPS: Replace YOUR_API_KEY_HERE. See SETUP_GUIDE.md -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
-  <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
