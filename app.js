@@ -8,18 +8,17 @@ const DEMO_USERS = {
 
 let currentUser   = null;
 let map, directionsService;
-let trafficLayer  = null;
 let vehicleMarker = null;
 let currentRoutePath = [];
 let trackingInterval = null;
 let deliveryHistory  = [];
 let mapsApiReady     = false;
 
-// Track all drawn polylines so we can clear them
+// All drawn polylines + markers tracked here for easy cleanup
 let drawnPolylines = [];
 
 /* ─────────────────────────────────────────
-   MAP INIT — called by Google Maps callback
+   MAP INIT
 ───────────────────────────────────────── */
 function onMapsReady() {
   mapsApiReady = true;
@@ -45,20 +44,24 @@ function initGoogleMap() {
     disableDefaultUI: true,
     zoomControl: true,
     gestureHandling: 'greedy',
+    // Slightly muted style so colored route lines pop
+    styles: [
+      { featureType: 'road', elementType: 'geometry',
+        stylers: [{ color: '#f0f0f0' }] },
+      { featureType: 'road.highway', elementType: 'geometry',
+        stylers: [{ color: '#e0e0e0' }] },
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+    ],
   });
 
   directionsService = new google.maps.DirectionsService();
-
-  // Traffic Layer — same coloured overlay as Google Maps app
-  // Red = heavy, Orange = moderate, Green = clear, Blue = unknown
-  trafficLayer = new google.maps.TrafficLayer();
-  trafficLayer.setMap(map);
-
+  // NOTE: No TrafficLayer — we color only our route lines, not every road
   setTimeout(() => google.maps.event.trigger(map, 'resize'), 300);
 }
 
 /* ─────────────────────────────────────────
-   CLEAR ALL DRAWN ROUTES
+   HELPERS
 ───────────────────────────────────────── */
 function clearAllRoutes() {
   drawnPolylines.forEach(p => p.setMap(null));
@@ -68,61 +71,129 @@ function clearAllRoutes() {
   currentRoutePath = [];
 }
 
-/* ─────────────────────────────────────────
-   DRAW A ROUTE AS A PLAIN POLYLINE
-   Used for alternative (greyed) routes
-───────────────────────────────────────── */
-function drawPolyline(path, color, weight, opacity, zIndex) {
-  const poly = new google.maps.Polyline({
-    path,
-    strokeColor: color,
-    strokeWeight: weight,
-    strokeOpacity: opacity,
-    zIndex,
-    map,
+function addPolyline(path, color, weight, opacity, zIndex) {
+  const p = new google.maps.Polyline({
+    path, strokeColor: color, strokeWeight: weight,
+    strokeOpacity: opacity, zIndex, map,
   });
-  drawnPolylines.push(poly);
-  return poly;
+  drawnPolylines.push(p);
+  return p;
 }
 
 /* ─────────────────────────────────────────
-   DRAW THE OPTIMAL ROUTE WITH TRAFFIC COLORS
-   Segments the overview_path and colors each
-   chunk based on traffic speed ratio.
-   The TrafficLayer already shows colors on the
-   map tiles — this draws the route LINE on top
-   with matching traffic-aware colors.
+   DRAW ALTERNATIVE ROUTE  — solid grey
 ───────────────────────────────────────── */
-function drawTrafficColoredRoute(route) {
+function drawAlternativeRoute(route, altMins) {
   const path = route.overview_path;
-  if (!path || path.length < 2) return;
+  // White halo for contrast against map, then grey line on top
+  addPolyline(path, '#ffffff', 9,  0.7, 1);
+  addPolyline(path, '#b0b8c4', 6, 0.65, 2);
 
-  const normalSecs  = route.legs.reduce((s, l) => s + l.duration.value, 0);
-  const trafficSecs = route.legs.reduce((s, l) =>
-    s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
+  // Duration chip at the midpoint of the alternative
+  const mid = path[Math.floor(path.length / 2)];
+  const chip = new google.maps.Marker({
+    position: mid, map, zIndex: 3,
+    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 },
+    label: {
+      text: `${altMins} min`,
+      color: '#687076',
+      fontSize: '11px',
+      fontWeight: '700',
+    },
+  });
+  drawnPolylines.push(chip);
+}
 
-  // Traffic ratio: how much slower than normal
-  // > 1.4 = heavy (red), 1.15–1.4 = moderate (orange), else clear (blue/green)
-  const ratio = normalSecs > 0 ? trafficSecs / normalSecs : 1;
+/* ─────────────────────────────────────────
+   DRAW MAIN ROUTE  — per-leg traffic colors
+   Each leg of the route gets its own color
+   based on that leg's individual traffic ratio.
+   This means congested legs show red/orange
+   while free-flowing legs stay blue —
+   exactly like Google Maps route coloring.
+───────────────────────────────────────── */
+function drawMainRoute(route) {
+  // We need to map each leg to a slice of the overview_path.
+  // Google doesn't expose per-leg path slices directly, so we
+  // approximate by finding the overview_path point closest to
+  // each leg's end_location, then coloring that slice.
 
-  let routeColor, borderColor;
-  if (ratio >= 1.4) {
-    routeColor  = '#e03131'; // heavy — red
-    borderColor = '#c92a2a';
-  } else if (ratio >= 1.15) {
-    routeColor  = '#f08c00'; // moderate — orange
-    borderColor = '#e67700';
-  } else {
-    routeColor  = '#3b5bdb'; // clear — blue (optimal)
-    borderColor = '#2f4ac2';
+  const fullPath = route.overview_path;
+
+  // Build an array of {endLat, endLng, color} per leg
+  const legColors = route.legs.map(leg => {
+    const normal  = leg.duration.value;
+    const traffic = leg.duration_in_traffic
+      ? leg.duration_in_traffic.value : normal;
+    const ratio   = normal > 0 ? traffic / normal : 1;
+
+    let color;
+    if      (ratio >= 1.35) color = '#e03131'; // red   — heavy
+    else if (ratio >= 1.12) color = '#f08c00'; // orange — moderate
+    else                    color = '#3b82f6'; // blue  — clear/fast
+
+    return {
+      endLat: leg.end_location.lat(),
+      endLng: leg.end_location.lng(),
+      color,
+    };
+  });
+
+  // Walk overview_path, splitting at the point nearest each leg boundary
+  let segStart = 0;
+  let legIdx   = 0;
+
+  // Helper: squared distance (no sqrt needed for comparison)
+  const dist2 = (a, bLat, bLng) => {
+    const dlat = a.lat() - bLat;
+    const dlng = a.lng() - bLng;
+    return dlat * dlat + dlng * dlng;
+  };
+
+  // For each leg find the index in overview_path closest to leg end_location
+  const splitIndices = legColors.map(lc => {
+    let bestIdx = segStart;
+    let bestD   = Infinity;
+    for (let i = segStart; i < fullPath.length; i++) {
+      const d = dist2(fullPath[i], lc.endLat, lc.endLng);
+      if (d < bestD) { bestD = d; bestIdx = i; }
+      // Early exit once we start getting farther again
+      if (d > bestD * 4 && i > segStart + 5) break;
+    }
+    segStart = bestIdx;
+    return bestIdx;
+  });
+
+  // Draw each leg segment
+  let prevIdx = 0;
+  splitIndices.forEach((endIdx, i) => {
+    const segPath = fullPath.slice(prevIdx, endIdx + 1);
+    if (segPath.length < 2) { prevIdx = endIdx; return; }
+
+    const color = legColors[i].color;
+    // White halo — thicker, behind
+    addPolyline(segPath, '#ffffff', 11, 0.6, 8);
+    // Colored segment on top
+    addPolyline(segPath, color,    7,  0.95, 9);
+
+    prevIdx = endIdx;
+  });
+
+  // Draw any remaining path after last leg boundary
+  if (prevIdx < fullPath.length - 1) {
+    const tail = fullPath.slice(prevIdx);
+    const lastColor = legColors[legColors.length - 1].color;
+    addPolyline(tail, '#ffffff',   11, 0.6, 8);
+    addPolyline(tail, lastColor,   7,  0.95, 9);
   }
 
-  // White border underneath for contrast (like Google Maps)
-  drawPolyline(path, '#ffffff', 10, 0.6, 9);
-  // Coloured route on top
-  drawPolyline(path, routeColor, 7, 0.95, 10);
+  // Overall traffic summary for the route
+  const totalNormal  = route.legs.reduce((s, l) => s + l.duration.value, 0);
+  const totalTraffic = route.legs.reduce((s, l) =>
+    s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
+  const overallRatio = totalNormal > 0 ? totalTraffic / totalNormal : 1;
 
-  return { color: routeColor, ratio };
+  return overallRatio;
 }
 
 /* ─────────────────────────────────────────
@@ -134,23 +205,19 @@ function placeMarkers(route) {
 
   [
     { pos: start, color: '#3b5bdb', label: 'A' },
-    { pos: end,   color: '#e03131', label: 'B' },
+    { pos: end,   color: '#1a7a2e', label: 'B' },
   ].forEach(({ pos, color, label }) => {
-    const marker = new google.maps.Marker({
-      position: pos,
-      map,
+    const m = new google.maps.Marker({
+      position: pos, map, zIndex: 20,
       label: { text: label, color: '#fff', fontWeight: 'bold', fontSize: '12px' },
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
-        fillColor: color,
-        fillOpacity: 1,
-        strokeColor: '#fff',
-        strokeWeight: 2,
-        scale: 12,
+        fillColor: color, fillOpacity: 1,
+        strokeColor: '#fff', strokeWeight: 2.5,
+        scale: 13,
       },
-      zIndex: 20,
     });
-    drawnPolylines.push(marker); // store so we can clear
+    drawnPolylines.push(m);
   });
 }
 
@@ -351,8 +418,8 @@ function optimizeRoute() {
     provideRouteAlternatives: true,
     drivingOptions: {
       departureTime: new Date(),
-      trafficModel: google.maps.TrafficModel.BEST_GUESS
-    }
+      trafficModel: google.maps.TrafficModel.BEST_GUESS,
+    },
   }, (response, status) => {
     if (status !== 'OK') {
       alert('Directions failed: ' + status);
@@ -366,87 +433,65 @@ function optimizeRoute() {
     setTimeout(() => {
       const routes = response.routes;
 
-      // ── 1. Find the fastest route by traffic-aware duration ──
-      let fastestIdx = 0;
-      let fastestSecs = Infinity;
-      routes.forEach((route, i) => {
-        const secs = route.legs.reduce((s, l) =>
+      // ── 1. Pick the fastest route by traffic-aware total duration ──
+      let mainIdx   = 0;
+      let mainSecs  = Infinity;
+      routes.forEach((r, i) => {
+        const secs = r.legs.reduce((s, l) =>
           s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-        if (secs < fastestSecs) { fastestSecs = secs; fastestIdx = i; }
+        if (secs < mainSecs) { mainSecs = secs; mainIdx = i; }
       });
 
-      // ── 2. Draw all alternative routes FIRST (lower z-index, grey) ──
-      routes.forEach((route, i) => {
-        if (i === fastestIdx) return; // skip optimal — drawn last on top
+      // Pick one alternative (the first that isn't the main route)
+      const altIdx = routes.findIndex((_, i) => i !== mainIdx);
 
-        const altSecs   = route.legs.reduce((s, l) =>
+      // ── 2. Draw alternative route first (grey, behind) ──
+      if (altIdx !== -1) {
+        const altRoute = routes[altIdx];
+        const altSecs  = altRoute.legs.reduce((s, l) =>
           s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-        const altMins   = Math.round(altSecs / 60);
-        const altDistKm = (route.legs.reduce((s, l) => s + l.distance.value, 0) / 1000).toFixed(1);
+        const altMins  = Math.round(altSecs / 60);
+        drawAlternativeRoute(altRoute, altMins);
+      }
 
-        // White border + grey line for alternatives
-        drawPolyline(route.overview_path, '#ffffff', 8,  0.5, 1);
-        drawPolyline(route.overview_path, '#9ca3af', 5,  0.55, 2);
+      // ── 3. Draw main route on top with per-leg traffic colors ──
+      const mainRoute    = routes[mainIdx];
+      const overallRatio = drawMainRoute(mainRoute);
+      currentRoutePath   = mainRoute.overview_path;
 
-        // Small info label at midpoint of the alternative
-        const midPt = route.overview_path[Math.floor(route.overview_path.length / 2)];
-        const infoMarker = new google.maps.Marker({
-          position: midPt,
-          map,
-          zIndex: 3,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 0,
-          },
-          label: {
-            text: `${altMins} min`,
-            color: '#6b7280',
-            fontSize: '11px',
-            fontWeight: '600',
-            className: 'route-label',
-          },
-        });
-        drawnPolylines.push(infoMarker);
-      });
+      // ── 4. Place A / B markers on top of everything ──
+      placeMarkers(mainRoute);
 
-      // ── 3. Draw the optimal route with traffic colors on top ──
-      const fastRoute   = routes[fastestIdx];
-      const trafficInfo = drawTrafficColoredRoute(fastRoute);
-      currentRoutePath  = fastRoute.overview_path;
-
-      // ── 4. Place A/B markers ──
-      placeMarkers(fastRoute);
-
-      // ── 5. Fit map to show all routes ──
+      // ── 5. Fit map bounds to show both routes ──
       const bounds = new google.maps.LatLngBounds();
       routes.forEach(r => r.overview_path.forEach(p => bounds.extend(p)));
-      map.fitBounds(bounds, { top: 60, bottom: 200, left: 20, right: 20 });
+      map.fitBounds(bounds, { top: 60, bottom: 220, left: 24, right: 24 });
 
-      // ── 6. Update UI ──
-      const trafficMins = Math.round(fastestSecs / 60);
+      // ── 6. Update panel UI ──
+      const trafficMins = Math.round(mainSecs / 60);
       const normalMins  = Math.round(
-        fastRoute.legs.reduce((s, l) => s + l.duration.value, 0) / 60);
+        mainRoute.legs.reduce((s, l) => s + l.duration.value, 0) / 60);
       const savedMins   = Math.max(0, normalMins - trafficMins);
-      const distanceKm  = (
-        fastRoute.legs.reduce((s, l) => s + l.distance.value, 0) / 1000).toFixed(1);
+      const distKm      = (
+        mainRoute.legs.reduce((s, l) => s + l.distance.value, 0) / 1000).toFixed(1);
 
-      const trafficRatio = trafficInfo ? trafficInfo.ratio : 1;
-      const trafficLabel = trafficRatio >= 1.4 ? '🔴 Heavy traffic'
-        : trafficRatio >= 1.15 ? '🟠 Moderate traffic'
-        : '🔵 Clear route';
+      const trafficLabel =
+        overallRatio >= 1.35 ? '🔴 Heavy traffic on route'
+        : overallRatio >= 1.12 ? '🟠 Moderate traffic on route'
+        : '🔵 Route is clear';
 
       btn.style.display = 'none';
       document.getElementById('btn-dispatch').style.display = 'block';
-      document.getElementById('ai-results').style.display = 'block';
+      document.getElementById('ai-results').style.display   = 'block';
       lockRouteInputs();
 
       document.getElementById('time-saved').textContent =
-        savedMins > 0 ? `⏱ ${savedMins} min saved` : `⏱ ${trafficMins} min`;
-      document.getElementById('gas-saved').textContent = `📍 ${distanceKm} km`;
+        savedMins > 0 ? `⏱ ${savedMins} min faster` : `⏱ ${trafficMins} min`;
+      document.getElementById('gas-saved').textContent  = `📍 ${distKm} km`;
       document.getElementById('ai-message').textContent =
-        `${trafficLabel}. ${routes.length > 1 ? `${routes.length} routes compared.` : ''} Optimal path selected.`;
-      document.getElementById('peek-sub').textContent =
-        `${trafficMins} min · ${distanceKm} km`;
+        `${trafficLabel}. ${altIdx !== -1 ? 'Alternative shown in grey.' : ''}`;
+      document.getElementById('peek-sub').textContent   =
+        `${trafficMins} min · ${distKm} km`;
 
     }, 400);
   });
