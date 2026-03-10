@@ -105,61 +105,47 @@ function drawAlternativeRoute(route, altMins) {
 }
 
 /* ─────────────────────────────────────────
-   DRAW MAIN ROUTE — per-step speed coloring
+   DRAW MAIN ROUTE
+   Colors the entire route one color based on
+   the overall traffic delay ratio — the only
+   traffic data the Directions API actually
+   provides. Per-street coloring is not
+   possible without Google's internal data feed.
 
-   We classify each step by its own speed
-   (distance / duration) independently.
-   This gives street-level color changes:
-   a fast highway segment stays blue even
-   if the surrounding area is congested.
-
-   Speed thresholds (km/h):
-     > 40  → blue   (free flow)
-     20–40 → orange (moderate)
-     < 20  → red    (heavy / crawl)
+   Ratio thresholds:
+     < 1.15  → blue   (clear / minor delay)
+     1.15–1.4 → orange (moderate traffic)
+     > 1.4   → red    (heavy traffic)
 ───────────────────────────────────────── */
 function drawMainRoute(route) {
-  // Compute the leg traffic ratio only for the overall UI label
   const totalNormal  = route.legs.reduce((s, l) => s + l.duration.value, 0);
   const totalTraffic = route.legs.reduce((s, l) =>
     s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-  const overallRatio = totalNormal > 0 ? totalTraffic / totalNormal : 1;
+  const ratio = totalNormal > 0 ? totalTraffic / totalNormal : 1;
 
+  const color = ratio >= 1.4  ? '#e03131'  // red    — heavy
+              : ratio >= 1.15 ? '#f08c00'  // orange — moderate
+              :                 '#3b82f6'; // blue   — clear
+
+  // Collect full detailed path from steps for maximum resolution
+  const path = [];
   route.legs.forEach(leg => {
-    // Scale factor: how much slower is this leg under traffic?
-    // We apply this proportionally to each step's duration so that
-    // steps on a slow leg become slower, but fast steps stay relatively fast.
-    const legNormal  = leg.duration.value  || 1;
-    const legTraffic = leg.duration_in_traffic
-      ? leg.duration_in_traffic.value : legNormal;
-    const legScale   = legTraffic / legNormal; // e.g. 1.5 = 50% slower
-
     leg.steps.forEach(step => {
-      const path     = step.lat_lngs;
-      const distM    = step.distance.value  || 1;
-      const durSec   = step.duration.value  || 1;
-
-      // Estimated travel time for this step under current traffic
-      const trafficDurSec = durSec * legScale;
-
-      // Speed under traffic in km/h
-      const speedKph = (distM / trafficDurSec) * 3.6;
-
-      // Classify purely by this step's own speed
-      let color;
-      if      (speedKph < 15) color = '#e03131'; // red    — heavy / near-standstill
-      else if (speedKph < 35) color = '#f08c00'; // orange — slow / moderate
-      else                    color = '#3b82f6'; // blue   — free flow
-
-      if (!path || path.length < 2) return;
-
-      // White halo behind for contrast, colored line on top
-      addPolyline(path, '#ffffff', 10, 0.55, 8);
-      addPolyline(path, color,      6, 0.93, 9);
+      if (step.lat_lngs && step.lat_lngs.length) {
+        path.push(...step.lat_lngs);
+      } else {
+        path.push(step.start_location, step.end_location);
+      }
     });
   });
 
-  return overallRatio;
+  if (path.length < 2) return ratio;
+
+  // White halo behind for contrast, colored line on top
+  addPolyline(path, '#ffffff', 11, 0.6,  8);
+  addPolyline(path, color,      7, 0.95, 9);
+
+  return ratio;
 }
 
 /* ─────────────────────────────────────────
@@ -408,17 +394,18 @@ function optimizeRoute() {
         if (secs < mainSecs) { mainSecs = secs; mainIdx = i; }
       });
 
-      // Pick one alternative (the first that isn't the main route)
-      const altIdx = routes.findIndex((_, i) => i !== mainIdx);
+      // Pick up to 2 alternatives (every route that isn't the main)
+      const altRoutes = routes
+        .map((r, i) => ({ r, i }))
+        .filter(({ i }) => i !== mainIdx)
+        .slice(0, 2);
 
-      // ── 2. Draw alternative route first (grey, behind) ──
-      if (altIdx !== -1) {
-        const altRoute = routes[altIdx];
-        const altSecs  = altRoute.legs.reduce((s, l) =>
+      // ── 2. Draw alternatives first (grey, behind main route) ──
+      altRoutes.forEach(({ r: altRoute }) => {
+        const altSecs = altRoute.legs.reduce((s, l) =>
           s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-        const altMins  = Math.round(altSecs / 60);
-        drawAlternativeRoute(altRoute, altMins);
-      }
+        drawAlternativeRoute(altRoute, Math.round(altSecs / 60));
+      });
 
       // ── 3. Draw main route on top with per-step traffic colors ──
       const mainRoute    = routes[mainIdx];
@@ -468,7 +455,7 @@ function optimizeRoute() {
         savedMins > 0 ? `⏱ ${savedMins} min faster` : `⏱ ${trafficMins} min`;
       document.getElementById('gas-saved').textContent  = `📍 ${distKm} km`;
       document.getElementById('ai-message').textContent =
-        `${trafficLabel}. ${altIdx !== -1 ? 'Alternative shown in grey.' : ''}`;
+        `${trafficLabel}. ${altRoutes.length > 0 ? `${altRoutes.length} alternative${altRoutes.length > 1 ? 's' : ''} shown in grey.` : ''}`;
       document.getElementById('peek-sub').textContent   =
         `${trafficMins} min · ${distKm} km`;
 
