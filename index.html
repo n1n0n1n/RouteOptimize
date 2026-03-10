@@ -2,9 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>RouteOptimize - Fleet Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#4f46e5"/>
+  <title>RouteOptimize — Fleet Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -13,27 +18,45 @@
   <div id="screen-login" class="screen active">
     <div class="login-layout">
       <div class="login-left">
-        <div class="illustration-placeholder">
-          <h2>Intelligent Fleet Routing</h2>
-          <p>Optimize your delivery paths in real-time.</p>
+        <div class="login-hero">
+          <div class="login-hero-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h1>Intelligent Fleet Routing</h1>
+          <p>AI-powered dispatch optimization for modern delivery teams. Save time, reduce fuel costs, and delight customers.</p>
+          <div class="feature-pills">
+            <span class="feature-pill">🤖 AI Routing</span>
+            <span class="feature-pill">📍 Live Tracking</span>
+            <span class="feature-pill">📊 Analytics</span>
+          </div>
         </div>
       </div>
       <div class="login-right">
         <div class="login-card">
           <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="logo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
             <h2>ROUTE OPTIMIZE</h2>
           </div>
+          <p class="login-title">Welcome back</p>
+          <p class="login-subtitle">Sign in to your fleet dashboard</p>
           <div class="input-group">
-            <input type="text" id="login-email" placeholder="Email address (admin@demo.com)" value="admin@demo.com" />
+            <label class="form-label">Email Address</label>
+            <input type="email" id="login-email" placeholder="admin@demo.com" value="admin@demo.com" autocomplete="email"/>
           </div>
           <div class="input-group">
-            <input type="password" id="login-pw" placeholder="Password (password123)" value="password123" />
+            <label class="form-label">Password</label>
+            <input type="password" id="login-pw" placeholder="password123" value="password123" autocomplete="current-password"/>
           </div>
           <div class="forgot-pw" onclick="doForgotPw()">Forgot password?</div>
-          <button class="btn-primary" onclick="doLogin()">Log In</button>
+          <button class="btn-primary" onclick="doLogin()">Sign In</button>
           <div class="divider"><span>Or continue with</span></div>
-          <button class="btn-outline" onclick="doSSO()">Single Sign-On (SSO)</button>
+          <button class="btn-outline" onclick="doSSO()">🔐 Single Sign-On (SSO)</button>
         </div>
       </div>
     </div>
@@ -41,64 +64,65 @@
 
   <!-- MAIN DASHBOARD -->
   <div id="screen-dashboard" class="screen">
+
     <nav class="top-nav">
       <div class="nav-left">
         <div class="nav-logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
         </div>
         <div class="nav-links">
-          <a href="#" class="active" onclick="switchTab('dispatch', this)">Dispatch</a>
-          <a href="#" onclick="switchTab('records', this)">History</a>
-          <a href="#" onclick="switchTab('drivers', this)">Fleet</a>
-          <a href="#" onclick="switchTab('settings', this)">Settings</a>
+          <a href="#" class="active" onclick="switchTab('dispatch', this); return false;">Dispatch</a>
+          <a href="#" onclick="switchTab('records', this); return false;">History</a>
+          <a href="#" onclick="switchTab('drivers', this); return false;">Fleet</a>
+          <a href="#" onclick="switchTab('settings', this); return false;">Settings</a>
         </div>
       </div>
       <div class="nav-right">
-        <span class="pill-green">System Online</span>
-        <span class="user-badge" id="user-display-role">User</span>
+        <span class="pill-green">● System Online</span>
+        <span class="user-badge" id="user-display-role">USER</span>
         <button class="icon-btn" onclick="doLogout()">Log Out</button>
       </div>
     </nav>
 
     <div class="main-content">
+
       <!-- TAB: DISPATCH -->
       <div id="tab-dispatch" class="tab-content active">
-        <div class="sidebar">
+        <div class="sidebar" id="main-sidebar" onclick="handleSidebarTap(event)">
           <div class="route-section">
-            <h3>ACTIVE ROUTE</h3>
-            <div class="stop-inputs" id="route-inputs-container">
+            <h3>Active Route</h3>
+            <div class="stop-inputs">
               <div class="stop pickup">
                 <span class="dot start"></span>
-                <input type="text" id="pickup-input" value="Quezon City, Metro Manila" placeholder="Pickup location" />
+                <input type="text" id="pickup-input" value="Quezon City, Metro Manila" placeholder="Pickup location" autocomplete="off"/>
               </div>
-              
               <div id="waypoints-container"></div>
-              
               <div class="stop dropoff">
                 <span class="dot end"></span>
-                <input type="text" id="destination-input" placeholder="Drop-off location" value="Makati City, Metro Manila"/>
+                <input type="text" id="destination-input" value="Makati City, Metro Manila" placeholder="Drop-off location" autocomplete="off"/>
               </div>
             </div>
-            <button class="btn-text" onclick="addWaypoint()">+ Add Waypoint</button>
+            <button class="btn-text" onclick="addWaypoint()">＋ Add Waypoint</button>
 
-            <!-- AI ROUTING FEATURE -->
             <div class="ai-routing-box">
               <button class="btn-ai" id="btn-ai" onclick="optimizeRoute()">✨ AI Optimize Route</button>
-              <button class="btn-ai btn-dispatch" id="btn-dispatch" style="display: none; background: #16a34a;" onclick="startLiveTracking()">🚀 Dispatch & Track Vehicle</button>
-              
-              <div id="ai-results" style="display: none;">
-                <p><strong id="ai-status-text">Route Optimized!</strong></p>
-                <span class="save-tag" id="time-saved">Time Saved: 15 mins</span>
-                <span class="save-tag" id="gas-saved">Gas Saved: 1.2 Liters</span>
+              <button class="btn-ai btn-dispatch" id="btn-dispatch" style="display:none; background:#16a34a;" onclick="startLiveTracking()">🚀 Dispatch &amp; Track</button>
+              <div id="ai-results" style="display:none;">
+                <p style="font-size:13px; font-weight:600; margin-bottom:4px;" id="ai-status-text">Route Optimized!</p>
+                <div class="save-tags">
+                  <span class="save-tag" id="time-saved">⏱ 15 mins saved</span>
+                  <span class="save-tag" id="gas-saved">⛽ 1.2 L saved</span>
+                </div>
                 <p class="small-text" id="ai-message">Bypassing heavy traffic via alternate corridor.</p>
-                
-                <button class="btn-outline" id="btn-new-delivery" style="display: none; margin-top: 12px; width: 100%; border-color: var(--primary); color: var(--primary);" onclick="resetForNewDelivery()">+ Make Another Delivery</button>
+                <button class="btn-outline" id="btn-new-delivery" style="display:none; margin-top:12px; width:100%; border-color:var(--primary); color:var(--primary);" onclick="resetForNewDelivery()">＋ New Delivery</button>
               </div>
             </div>
           </div>
 
           <div class="vehicle-section">
-            <h3>ASSIGN ASSET</h3>
+            <h3>Assign Asset</h3>
             <div class="vehicle-grid">
               <div class="vehicle-card active" onclick="selectVehicle(this)" data-vehicle="Standard Van">
                 <div class="v-icon">🚐</div>
@@ -111,7 +135,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="map-area">
           <div id="map"></div>
         </div>
@@ -120,11 +144,44 @@
       <!-- TAB: HISTORY -->
       <div id="tab-records" class="tab-content">
         <div class="history-page">
-          <h2 style="margin-bottom: 20px;">Dispatch History</h2>
+          <h2>Dispatch History</h2>
           <div id="history-list">
-            <div class="empty-state" id="history-empty">
+            <div class="empty-state">
               <div class="empty-icon">📊</div>
-              <p>No past dispatch records found.</p>
+              <p>No past dispatch records found.<br>Complete a delivery to see it here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: FLEET -->
+      <div id="tab-drivers" class="tab-content">
+        <div class="fleet-page">
+          <h2>Fleet Overview</h2>
+          <div class="fleet-grid">
+            <div class="fleet-card">
+              <div class="fleet-card-icon">🚐</div>
+              <h4>Van — Unit 01</h4>
+              <p>Metro Manila Route</p>
+              <span class="status-badge status-available">Available</span>
+            </div>
+            <div class="fleet-card">
+              <div class="fleet-card-icon">🚛</div>
+              <h4>Box Truck — Unit 02</h4>
+              <p>Makati Express</p>
+              <span class="status-badge status-busy">En Route</span>
+            </div>
+            <div class="fleet-card">
+              <div class="fleet-card-icon">🚐</div>
+              <h4>Van — Unit 03</h4>
+              <p>Quezon City Route</p>
+              <span class="status-badge status-available">Available</span>
+            </div>
+            <div class="fleet-card">
+              <div class="fleet-card-icon">🚚</div>
+              <h4>Delivery Van — Unit 04</h4>
+              <p>Pasig City Route</p>
+              <span class="status-badge status-busy">En Route</span>
             </div>
           </div>
         </div>
@@ -141,11 +198,11 @@
           <div class="settings-main">
             <h2>Account Profile</h2>
             <div class="form-group">
-              <label>FULL NAME</label>
+              <label>Full Name</label>
               <input type="text" id="prof-fname" readonly/>
             </div>
             <div class="form-group">
-              <label>LOGIN EMAIL</label>
+              <label>Login Email</label>
               <input type="text" id="prof-email" readonly/>
             </div>
           </div>
@@ -153,9 +210,38 @@
       </div>
 
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+      <a href="#" class="active" id="mn-dispatch" onclick="mobileNav('dispatch', this); return false;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        Dispatch
+      </a>
+      <a href="#" id="mn-records" onclick="mobileNav('records', this); return false;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        History
+      </a>
+      <a href="#" id="mn-drivers" onclick="mobileNav('drivers', this); return false;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        Fleet
+      </a>
+      <a href="#" id="mn-settings" onclick="mobileNav('settings', this); return false;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </a>
+    </nav>
+
   </div>
 
-  <!-- GOOGLE MAPS API: Replace YOUR_API_KEY_HERE with your key from Google Cloud Console. See the included setup guide. -->
+  <!-- GOOGLE MAPS: Replace YOUR_API_KEY_HERE. See SETUP_GUIDE.md -->
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
   <script src="app.js"></script>
 </body>
