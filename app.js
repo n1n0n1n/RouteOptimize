@@ -271,7 +271,11 @@ function optimizeRoute() {
     origin: pickup, destination: dropoff, waypoints,
     optimizeWaypoints: true,
     travelMode: google.maps.TravelMode.DRIVING,
-    provideRouteAlternatives: true
+    provideRouteAlternatives: true,
+    drivingOptions: {
+      departureTime: new Date(),           // "leave now" — enables live traffic data
+      trafficModel: google.maps.TrafficModel.BEST_GUESS  // best estimate given current conditions
+    }
   }, (response, status) => {
     if (status !== 'OK') {
       alert('Directions failed: ' + status);
@@ -282,15 +286,53 @@ function optimizeRoute() {
 
     directionsRenderer.setDirections(response);
     currentRoutePath = response.routes[0].overview_path;
-    btn.textContent = '⏳ Analyzing alternatives…';
+    btn.textContent = '⏳ Analyzing traffic…';
 
     setTimeout(() => {
+      // Pick the route with the shortest traffic-aware duration
+      let fastestIdx = 0;
+      let fastestSeconds = Infinity;
+      response.routes.forEach((route, i) => {
+        const totalSeconds = route.legs.reduce((sum, leg) => {
+          // duration_in_traffic is only present when departureTime is set
+          const secs = leg.duration_in_traffic
+            ? leg.duration_in_traffic.value
+            : leg.duration.value;
+          return sum + secs;
+        }, 0);
+        if (totalSeconds < fastestSeconds) {
+          fastestSeconds = totalSeconds;
+          fastestIdx = i;
+        }
+      });
+
+      // Draw the slowest route in grey (first non-optimal route)
+      const slowIdx = fastestIdx === 0 ? 1 : 0;
       if (response.routes.length > 1) {
-        const alt = Object.assign({}, response);
-        alt.routes = [response.routes[1]];
-        aiDirectionsRenderer.setDirections(alt);
-        currentRoutePath = response.routes[1].overview_path;
+        const slowResponse = Object.assign({}, response);
+        slowResponse.routes = [response.routes[slowIdx]];
+        directionsRenderer.setDirections(slowResponse);
       }
+
+      // Draw the fastest (traffic-optimized) route in indigo
+      const fastResponse = Object.assign({}, response);
+      fastResponse.routes = [response.routes[fastestIdx]];
+      aiDirectionsRenderer.setDirections(fastResponse);
+      currentRoutePath = response.routes[fastestIdx].overview_path;
+
+      // Read real duration_in_traffic from the winning route
+      const fastRoute = response.routes[fastestIdx];
+      const trafficMins = Math.round(
+        fastRoute.legs.reduce((s, l) =>
+          s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0) / 60
+      );
+      const normalMins = Math.round(
+        fastRoute.legs.reduce((s, l) => s + l.duration.value, 0) / 60
+      );
+      const savedMins = Math.max(0, normalMins - trafficMins);
+      const distanceKm = (
+        fastRoute.legs.reduce((s, l) => s + l.distance.value, 0) / 1000
+      ).toFixed(1);
 
       btn.style.display = 'none';
       document.getElementById('btn-dispatch').style.display = 'block';
@@ -298,13 +340,17 @@ function optimizeRoute() {
 
       lockRouteInputs();
 
-      const s = getMockSavings(dropoff);
-      document.getElementById('time-saved').textContent = `⏱ ${s.time} saved`;
-      document.getElementById('gas-saved').textContent  = `⛽ ${s.fuel} saved`;
-      document.getElementById('ai-message').textContent = s.message;
-      document.getElementById('peek-sub').textContent   = `${s.time} saved · ${s.fuel} fuel`;
-    }, 1200);
-  });
+      // Show real traffic data instead of mock values
+      document.getElementById('time-saved').textContent =
+        savedMins > 0 ? `⏱ ${savedMins} mins saved` : `⏱ ${trafficMins} mins`;
+      document.getElementById('gas-saved').textContent = `📍 ${distanceKm} km`;
+      document.getElementById('ai-message').textContent =
+        savedMins > 0
+          ? `Live traffic detected. Optimal route saves ${savedMins} min vs the ${response.routes.length > 1 ? 'alternate' : 'standard'} path.`
+          : `Route is clear — no significant traffic delays detected.`;
+      document.getElementById('peek-sub').textContent =
+        `${trafficMins} min · ${distanceKm} km`;
+    }, 400);
 }
 
 function getMockSavings(destination) {
@@ -326,13 +372,16 @@ function startLiveTracking() {
   btn.disabled = true;
   if (!currentRoutePath.length) return;
 
+  const totalSteps = currentRoutePath.length;
+  const peekSub = document.getElementById('peek-sub');
+
   const activeCard = document.querySelector('.vehicle-card.active');
   const vType = activeCard ? activeCard.dataset.vehicle : 'Standard Van';
   const icon  = vType === 'Box Truck'
     ? 'https://maps.google.com/mapfiles/ms/icons/truck.png'
     : 'https://maps.google.com/mapfiles/ms/icons/cabs.png';
 
-  if (vehicleMarker) vehicleMarker.setMap(null);
+  if (vehicleMarker) { vehicleMarker.setMap(null); vehicleMarker = null; }
   vehicleMarker = new google.maps.Marker({
     position: currentRoutePath[0], map, icon, title: 'Delivery Vehicle'
   });
@@ -340,13 +389,18 @@ function startLiveTracking() {
   let step = 0;
   trackingInterval = setInterval(() => {
     step += 2;
+
+    // Live progress in peek bar
+    const pct = Math.min(100, Math.round((step / totalSteps) * 100));
+    peekSub.textContent = `En route · ${pct}% complete`;
+
     if (step >= currentRoutePath.length) {
       clearInterval(trackingInterval);
       btn.textContent = '✅ Arrived';
       btn.style.background = '#4b5563';
       document.getElementById('ai-status-text').textContent = 'Delivery complete!';
       document.getElementById('btn-new-delivery').style.display = 'block';
-      document.getElementById('peek-sub').textContent = 'Delivery completed';
+      peekSub.textContent = 'Delivered ✓';
 
       deliveryHistory.push({
         pickup:  document.getElementById('pickup-input').value,
