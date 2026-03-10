@@ -1,103 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>RouteOptimize Fleet Dashboard</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>RouteOptimize - Fleet Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen" class="screen active">
+  <!-- LOGIN SCREEN -->
+  <div id="screen-login" class="screen active">
+    <div class="login-layout">
+      <div class="login-left">
+        <div class="illustration-placeholder">
+          <h2>Intelligent Fleet Routing</h2>
+          <p>Optimize your delivery paths in real-time.</p>
+        </div>
+      </div>
+      <div class="login-right">
+        <div class="login-card">
+          <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h2>ROUTE OPTIMIZE</h2>
+          </div>
+          <div class="input-group">
+            <input type="email" id="login-email" placeholder="Email address" value="admin@demo.com" autocomplete="email"/>
+          </div>
+          <div class="input-group">
+            <input type="password" id="login-pw" placeholder="Password" value="password123" autocomplete="current-password"/>
+          </div>
+          <div class="forgot-pw" onclick="doForgotPw()">Forgot password?</div>
+          <button class="btn-primary" onclick="doLogin()">Log In</button>
+          <div class="divider"><span>Or continue with</span></div>
+          <button class="btn-outline" onclick="doSSO()">Single Sign-On (SSO)</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="login-card">
+  <!-- MAIN DASHBOARD -->
+  <div id="screen-dashboard" class="screen">
 
-<h1>RouteOptimize</h1>
+    <nav class="top-nav">
+      <div class="nav-left">
+        <div class="nav-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="nav-links">
+          <a href="#" class="active" onclick="switchTab('dispatch',this);return false">Dispatch</a>
+          <a href="#" onclick="switchTab('records',this);return false">History</a>
+          <a href="#" onclick="switchTab('drivers',this);return false">Fleet</a>
+          <a href="#" onclick="switchTab('settings',this);return false">Settings</a>
+        </div>
+      </div>
+      <div class="nav-right">
+        <span class="pill-green">System Online</span>
+        <span class="user-badge" id="user-display-role">User</span>
+        <button class="icon-btn" onclick="doLogout()">Log Out</button>
+      </div>
+    </nav>
 
-<input id="login-email" type="text" placeholder="Email (admin@demo.com)">
-<input id="login-password" type="password" placeholder="Password (password123)">
+    <div class="main-content">
 
-<button onclick="login()">Login</button>
+      <!-- TAB: DISPATCH -->
+      <div id="tab-dispatch" class="tab-content active">
 
-</div>
+        <div class="map-area">
+          <div id="map"></div>
+        </div>
 
-</div>
+        <!-- Sidebar on desktop / Bottom Sheet on mobile -->
+        <div class="sidebar" id="sidebar">
 
+          <!-- Mobile-only peek handle -->
+          <div class="sheet-peek" onclick="toggleSheet()">
+            <span class="sheet-peek-title">📍 Route Planner</span>
+            <span class="sheet-peek-caret">▲ tap to expand</span>
+          </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard-screen" class="screen">
+          <div class="route-section">
+            <h3>Active Route</h3>
+            <div class="stop-inputs">
+              <div class="stop pickup">
+                <span class="dot start"></span>
+                <input type="text" id="pickup-input" value="Quezon City, Metro Manila" placeholder="Pickup location"/>
+              </div>
+              <div id="waypoints-container"></div>
+              <div class="stop dropoff">
+                <span class="dot end"></span>
+                <input type="text" id="destination-input" value="Makati City, Metro Manila" placeholder="Drop-off location"/>
+              </div>
+            </div>
+            <button class="btn-text" onclick="addWaypoint()">+ Add Waypoint</button>
 
-<nav class="top-nav">
+            <div class="ai-routing-box">
+              <button class="btn-ai" id="btn-ai" onclick="optimizeRoute()">✨ AI Optimize Route</button>
+              <button class="btn-ai btn-dispatch" id="btn-dispatch" style="display:none;background:#16a34a" onclick="startLiveTracking()">🚀 Dispatch &amp; Track Vehicle</button>
+              <div id="ai-results" style="display:none">
+                <p><strong id="ai-status-text">Route Optimized!</strong></p>
+                <span class="save-tag" id="time-saved">Time Saved: 15 mins</span>
+                <span class="save-tag" id="gas-saved">Fuel Saved: 1.2 Liters</span>
+                <p class="small-text" id="ai-message">Bypassing heavy traffic via alternate corridor.</p>
+                <button class="btn-outline" id="btn-new-delivery" style="display:none;margin-top:12px;width:100%;border-color:var(--primary);color:var(--primary)" onclick="resetForNewDelivery()">+ Make Another Delivery</button>
+              </div>
+            </div>
+          </div>
 
-<div class="nav-title">RouteOptimize</div>
+          <div class="vehicle-section">
+            <h3>Assign Asset</h3>
+            <div class="vehicle-grid">
+              <div class="vehicle-card active" onclick="selectVehicle(this)" data-vehicle="Standard Van">
+                <div class="v-icon">🚐</div><span>Standard Van</span>
+              </div>
+              <div class="vehicle-card" onclick="selectVehicle(this)" data-vehicle="Box Truck">
+                <div class="v-icon">🚛</div><span>Box Truck</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<div class="nav-user">
-<span id="user-role">Dispatcher</span>
-<button onclick="logout()">Logout</button>
-</div>
+      </div><!-- /tab-dispatch -->
 
-</nav>
+      <!-- TAB: HISTORY -->
+      <div id="tab-records" class="tab-content">
+        <div class="history-page">
+          <h2 style="margin-bottom:20px">Dispatch History</h2>
+          <div id="history-list">
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <p>No past dispatch records found.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- TAB: FLEET -->
+      <div id="tab-drivers" class="tab-content">
+        <div class="empty-state" style="margin-top:20vh;width:100%">
+          <div class="empty-icon">🚛</div>
+          <p>Fleet management coming soon.</p>
+        </div>
+      </div>
 
-<div class="main-layout">
+      <!-- TAB: SETTINGS -->
+      <div id="tab-settings" class="tab-content">
+        <div class="settings-layout">
+          <div class="settings-sidebar">
+            <div class="s-nav active">Account Profile</div>
+            <div class="s-nav">Preferences</div>
+            <div class="s-nav">System Config</div>
+          </div>
+          <div class="settings-main">
+            <h2>Account Profile</h2>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="prof-fname" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Login Email</label>
+              <input type="text" id="prof-email" readonly/>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
+    </div><!-- /main-content -->
 
-<h3>Route</h3>
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item active" onclick="mobileSwitchTab('dispatch',this)">
+        <span class="bn-icon">🗺️</span>
+        <span>Dispatch</span>
+      </button>
+      <button class="bottom-nav-item" onclick="mobileSwitchTab('records',this)">
+        <span class="bn-icon">📋</span>
+        <span>History</span>
+      </button>
+      <button class="bottom-nav-item" onclick="mobileSwitchTab('drivers',this)">
+        <span class="bn-icon">🚛</span>
+        <span>Fleet</span>
+      </button>
+      <button class="bottom-nav-item" onclick="mobileSwitchTab('settings',this)">
+        <span class="bn-icon">⚙️</span>
+        <span>Settings</span>
+      </button>
+    </nav>
 
-<input id="pickup-input" placeholder="Pickup location">
+  </div><!-- /screen-dashboard -->
 
-<input id="destination-input" placeholder="Destination">
+  <!-- GOOGLE MAPS API: Replace YOUR_API_KEY_HERE with your key. See SETUP_GUIDE.md -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
+  <script src="app.js"></script>
+  <script>
+    function toggleSheet() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
 
-<button onclick="optimizeRoute()">Optimize Route</button>
+    function mobileSwitchTab(tabId, btn) {
+      document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-<button onclick="saveDispatch()">Dispatch Vehicle</button>
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
 
-<hr>
-
-<h3>Vehicle</h3>
-
-<select id="vehicle-select">
-<option>Standard Van</option>
-<option>Box Truck</option>
-<option>Motorcycle</option>
-</select>
-
-<hr>
-
-<h3>Dispatch History</h3>
-
-<div id="history-list"></div>
-
-</div>
-
-
-<!-- MAP -->
-<div class="map-area">
-
-<div id="map"></div>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-<!-- GOOGLE MAPS -->
-<script async defer
-src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initMap">
-</script>
-
-<script src="app.js"></script>
-
+      if (tabId !== 'dispatch') {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+      if (tabId === 'dispatch' && typeof map !== 'undefined' && map) {
+        setTimeout(() => {
+          google.maps.event.trigger(map, 'resize');
+          map.setCenter({ lat: 14.6091, lng: 121.0223 });
+        }, 120);
+      }
+      if (tabId === 'records') renderHistory();
+    }
+  </script>
 </body>
 </html>
