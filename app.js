@@ -105,75 +105,61 @@ function drawAlternativeRoute(route, altMins) {
 }
 
 /* ─────────────────────────────────────────
-   DRAW MAIN ROUTE — per-step traffic colors
+   DRAW MAIN ROUTE — per-step speed coloring
 
-   Google's Directions API gives us individual
-   STEPS inside each leg. Each step = one street
-   segment / maneuver with its own path and
-   duration. We color each step independently
-   based on how it compares to the LEG average
-   speed, giving street-level color changes
-   exactly like Google Maps.
+   We classify each step by its own speed
+   (distance / duration) independently.
+   This gives street-level color changes:
+   a fast highway segment stays blue even
+   if the surrounding area is congested.
+
+   Speed thresholds (km/h):
+     > 40  → blue   (free flow)
+     20–40 → orange (moderate)
+     < 20  → red    (heavy / crawl)
 ───────────────────────────────────────── */
 function drawMainRoute(route) {
-  // Collect all steps across all legs
-  const allSteps = [];
-  route.legs.forEach(leg => {
-    // Per-leg traffic ratio used to scale step durations
-    const legNormal  = leg.duration.value || 1;
-    const legTraffic = leg.duration_in_traffic
-      ? leg.duration_in_traffic.value : legNormal;
-    const legRatio   = legTraffic / legNormal;
-
-    leg.steps.forEach(step => {
-      // Each step has its own duration (normal, no traffic data at step level)
-      // We scale it by the leg's traffic ratio to estimate step congestion.
-      // Steps on the same leg that are highways get scaled more — we use
-      // distance-per-second (speed) to judge relative congestion.
-      const stepNormalSecs = step.duration.value || 1;
-      const stepDistMeters = step.distance.value || 1;
-
-      // Normal speed for this step (m/s)
-      const stepSpeedNormal = stepDistMeters / stepNormalSecs;
-
-      // Estimated speed under current traffic = scale by leg ratio
-      // Faster steps (highways) degrade more under traffic
-      const stepSpeedTraffic = stepSpeedNormal / legRatio;
-
-      // Classify by absolute speed (m/s):
-      // >10 m/s (~36km/h) clear, 5–10 moderate, <5 heavy
-      // AND by relative slowdown ratio
-      let color;
-      if (legRatio >= 1.5 || stepSpeedTraffic < 4) {
-        color = '#e03131'; // heavy — red
-      } else if (legRatio >= 1.18 || stepSpeedTraffic < 8) {
-        color = '#f08c00'; // moderate — orange
-      } else {
-        color = '#3b82f6'; // clear — blue
-      }
-
-      // step.lat_lngs gives the detailed point array for this street segment
-      const path = step.lat_lngs;
-      if (path && path.length >= 2) {
-        allSteps.push({ path, color });
-      } else if (step.start_location && step.end_location) {
-        // Fallback: just start + end if no detailed path
-        allSteps.push({ path: [step.start_location, step.end_location], color });
-      }
-    });
-  });
-
-  // Draw all steps: white halo first, then colored line on top
-  allSteps.forEach(({ path, color }) => {
-    addPolyline(path, '#ffffff', 10, 0.55, 8);
-    addPolyline(path, color,     6,  0.92, 9);
-  });
-
-  // Return overall ratio for the UI label
+  // Compute the leg traffic ratio only for the overall UI label
   const totalNormal  = route.legs.reduce((s, l) => s + l.duration.value, 0);
   const totalTraffic = route.legs.reduce((s, l) =>
     s + (l.duration_in_traffic ? l.duration_in_traffic.value : l.duration.value), 0);
-  return totalNormal > 0 ? totalTraffic / totalNormal : 1;
+  const overallRatio = totalNormal > 0 ? totalTraffic / totalNormal : 1;
+
+  route.legs.forEach(leg => {
+    // Scale factor: how much slower is this leg under traffic?
+    // We apply this proportionally to each step's duration so that
+    // steps on a slow leg become slower, but fast steps stay relatively fast.
+    const legNormal  = leg.duration.value  || 1;
+    const legTraffic = leg.duration_in_traffic
+      ? leg.duration_in_traffic.value : legNormal;
+    const legScale   = legTraffic / legNormal; // e.g. 1.5 = 50% slower
+
+    leg.steps.forEach(step => {
+      const path     = step.lat_lngs;
+      const distM    = step.distance.value  || 1;
+      const durSec   = step.duration.value  || 1;
+
+      // Estimated travel time for this step under current traffic
+      const trafficDurSec = durSec * legScale;
+
+      // Speed under traffic in km/h
+      const speedKph = (distM / trafficDurSec) * 3.6;
+
+      // Classify purely by this step's own speed
+      let color;
+      if      (speedKph < 15) color = '#e03131'; // red    — heavy / near-standstill
+      else if (speedKph < 35) color = '#f08c00'; // orange — slow / moderate
+      else                    color = '#3b82f6'; // blue   — free flow
+
+      if (!path || path.length < 2) return;
+
+      // White halo behind for contrast, colored line on top
+      addPolyline(path, '#ffffff', 10, 0.55, 8);
+      addPolyline(path, color,      6, 0.93, 9);
+    });
+  });
+
+  return overallRatio;
 }
 
 /* ─────────────────────────────────────────
