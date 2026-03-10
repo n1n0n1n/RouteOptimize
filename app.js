@@ -1,211 +1,335 @@
-/* ==================== STATE ==================== */
-let currentScreen = 'login';
-let loginMode = 'driver'; // 'driver' or 'admin'
+// RouteOptimize - Static Version (No Node.js required)
+// All backend logic is now handled client-side for GitHub Pages hosting
 
-const screens = ['login', 'home', 'packages', 'navigate', 'settings'];
+let currentUser = null;
 
-/* ==================== SCREEN NAVIGATION ==================== */
+// --- DEMO ACCOUNTS (replaces server.js /api/login) ---
+const DEMO_USERS = {
+  'admin@demo.com': { email: 'admin@demo.com', role: 'admin', name: 'Admin Master', password: 'password123' },
+  'user@demo.com':  { email: 'user@demo.com',  role: 'user',  name: 'Standard User', password: 'password123' }
+};
 
-/**
- * Navigate to a named screen with a slide transition.
- * Direction is inferred from screen order.
- * @param {string} name - Screen ID suffix (e.g. 'home', 'packages')
- */
-function goTo(name) {
-  const prev = document.getElementById('screen-' + currentScreen);
-  const next = document.getElementById('screen-' + name);
+// --- GOOGLE MAPS & ROUTING VARIABLES ---
+let map;
+let directionsService;
+let directionsRenderer;
+let aiDirectionsRenderer;
+let vehicleMarker = null;
+let currentRoutePath = [];
+let trackingInterval = null;
+let deliveryHistory = [];
 
-  if (!next || name === currentScreen) return;
+// --- INITIALIZATION ---
+function initGoogleMap() {
+  if (map) return;
 
-  const prevIndex = screens.indexOf(currentScreen);
-  const nextIndex = screens.indexOf(name);
-  const goingForward = nextIndex >= prevIndex;
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 12,
+    center: { lat: 14.6091, lng: 121.0223 },
+    disableDefaultUI: true,
+    zoomControl: true,
+  });
 
-  // Slide previous screen out
-  prev.classList.add(goingForward ? 'slide-left' : 'hidden');
-  prev.classList.remove(goingForward ? 'hidden' : 'slide-left');
+  directionsService = new google.maps.DirectionsService();
 
-  // Bring next screen in
-  next.classList.remove('hidden', 'slide-left');
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: false,
+    polylineOptions: { strokeColor: "#9ca3af", strokeWeight: 4, strokeOpacity: 0.7 }
+  });
 
-  currentScreen = name;
-
-  // Reset scroll position
-  const scrollEl = next.querySelector('.scroll');
-  if (scrollEl) scrollEl.scrollTop = 0;
+  aiDirectionsRenderer = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true,
+    polylineOptions: { strokeColor: "#4f46e5", strokeWeight: 6, strokeOpacity: 0.9 }
+  });
 }
 
-/* ==================== LOGIN ==================== */
-
-/**
- * Switch between Driver and Admin login modes.
- * Updates toggle buttons, sign-in label, and pre-fills email.
- * @param {string} mode - 'driver' or 'admin'
- */
-function setLoginMode(mode) {
-  loginMode = mode;
-
-  document.getElementById('driver-toggle').classList.toggle('active', mode === 'driver');
-  document.getElementById('admin-toggle').classList.toggle('active', mode === 'admin');
-
-  document.getElementById('sign-btn-label').textContent =
-    mode === 'driver' ? 'Sign In as Driver' : 'Sign In as Admin';
-
-  document.getElementById('login-email').value =
-    mode === 'driver' ? 'john.driver@example.com' : 'admin@routeoptimize.com';
-
-  checkLoginBtn();
-}
-
-/**
- * Enable or disable the Sign In button based on field values.
- */
-function checkLoginBtn() {
-  const email    = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-pw').value.trim();
-  document.getElementById('sign-btn').disabled = !(email && password);
-}
-
-/**
- * Simulate credential validation and redirect to the correct dashboard.
- * Populates role-specific content in Home and Settings screens.
- */
+// --- AUTHENTICATION (now fully client-side) ---
 function doLogin() {
-  const btn = document.getElementById('sign-btn');
-  btn.style.opacity = '0.6';
-  btn.style.pointerEvents = 'none';
-  document.getElementById('sign-btn-label').textContent = 'Signing in...';
+  const email    = document.getElementById('login-email').value.trim().toLowerCase();
+  const password = document.getElementById('login-pw').value.trim();
 
-  setTimeout(() => {
-    btn.style.opacity = '';
-    btn.style.pointerEvents = '';
+  const user = DEMO_USERS[email];
 
-    if (loginMode === 'admin') {
-      // Populate admin view
-      document.getElementById('home-greeting').textContent  = 'Welcome back,';
-      document.getElementById('home-name').textContent      = 'Admin User';
-      document.getElementById('home-avatar').textContent    = 'AU';
-      document.getElementById('admin-home-banner').style.display = 'block';
-      document.getElementById('driver-stats').style.display      = 'none';
-      document.getElementById('settings-name').textContent    = 'Admin User';
-      document.getElementById('settings-email').textContent   = 'admin@routeoptimize.com';
-      document.getElementById('settings-driverid').textContent = 'Admin · Fleet Manager';
-      document.getElementById('settings-avatar').textContent  = 'AU';
-    } else {
-      // Populate driver view
-      document.getElementById('home-greeting').textContent  = 'Good morning,';
-      document.getElementById('home-name').textContent      = 'John Driver';
-      document.getElementById('home-avatar').textContent    = 'JD';
-      document.getElementById('admin-home-banner').style.display = 'none';
-      document.getElementById('driver-stats').style.display      = 'grid';
-      document.getElementById('settings-name').textContent    = 'John Driver';
-      document.getElementById('settings-email').textContent   = 'john.driver@example.com';
-      document.getElementById('settings-driverid').textContent = 'Driver ID: DRV-2026-456';
-      document.getElementById('settings-avatar').textContent  = 'JD';
-    }
-
-    document.getElementById('sign-btn-label').textContent =
-      loginMode === 'driver' ? 'Sign In as Driver' : 'Sign In as Admin';
-
-    goTo('home');
-  }, 900);
-}
-
-/**
- * Log the current user out and return to the Login screen.
- */
-function doLogout() {
-  if (confirm('Log out of RouteOptimize?')) {
-    setLoginMode('driver');
-    goTo('login');
+  if (user && user.password === password) {
+    loginSuccess({ email: user.email, role: user.role, name: user.name });
+  } else {
+    alert('Login failed. Please use:\nEmail: admin@demo.com OR user@demo.com\nPass: password123');
   }
 }
 
-/* ==================== PACKAGES ==================== */
+function loginSuccess(user) {
+  currentUser = user;
 
-/**
- * Switch the active package tab and filter visible cards by status.
- * @param {string} tab  - 'active' | 'pending' | 'completed'
- * @param {HTMLElement} btn - The tab button that was clicked
- */
-function setPkgTab(tab, btn) {
-  document.querySelectorAll('.pkg-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
+  document.getElementById('user-display-role').textContent = currentUser.role.toUpperCase();
+  document.getElementById('prof-fname').value  = currentUser.name;
+  document.getElementById('prof-email').value  = currentUser.email;
 
-  document.querySelectorAll('.pkg-card').forEach(card => {
-    if (tab === 'active') {
-      card.style.display = card.dataset.status === 'active' ? 'block' : 'none';
-    } else if (tab === 'pending') {
-      card.style.display = card.dataset.status === 'pending' ? 'block' : 'none';
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-dashboard').classList.add('active');
+
+  setTimeout(() => {
+    initGoogleMap();
+    if (map) google.maps.event.trigger(map, 'resize');
+  }, 350);
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('screen-dashboard').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  resetForNewDelivery();
+}
+
+function doSSO() {
+  const btn = document.querySelector('.btn-outline');
+  const originalText = btn.textContent;
+  btn.textContent = 'Redirecting to Provider...';
+  btn.disabled = true;
+
+  // Simulate SSO delay, then auto-login as demo user
+  setTimeout(() => {
+    loginSuccess(DEMO_USERS['user@demo.com']);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }, 1500);
+}
+
+function doForgotPw() {
+  const currentEmail = document.getElementById('login-email').value.trim().toLowerCase();
+  const resetEmail = prompt("Enter email to reset password:", currentEmail);
+  if (!resetEmail) return;
+  // Client-side mock — always returns the same message
+  alert(`If ${resetEmail.trim().toLowerCase()} exists, a reset link has been sent.`);
+}
+
+// --- UI INTERACTIONS ---
+function switchTab(tabId, element) {
+  document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+  const targetTab = document.getElementById('tab-' + tabId);
+  if (targetTab) {
+    targetTab.classList.add('active');
+
+    if (tabId === 'dispatch' && map) {
+      setTimeout(() => {
+        google.maps.event.trigger(map, 'resize');
+        map.setCenter({ lat: 14.6091, lng: 121.0223 });
+      }, 100);
+    }
+
+    if (tabId === 'records') renderHistory();
+  }
+}
+
+function selectVehicle(el) {
+  document.querySelectorAll('.vehicle-card').forEach(card => card.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function addWaypoint() {
+  const container = document.getElementById('waypoints-container');
+  const wpDiv = document.createElement('div');
+  wpDiv.className = 'stop waypoint-entry';
+  wpDiv.innerHTML = `
+    <span class="dot waypoint"></span>
+    <input type="text" placeholder="Intermediate stop (e.g. Pasig, Manila)" class="wp-input" />
+    <button class="remove-wp" onclick="this.parentElement.remove()">×</button>
+  `;
+  container.appendChild(wpDiv);
+}
+
+function resetForNewDelivery() {
+  document.getElementById('ai-results').style.display = 'none';
+  document.getElementById('btn-new-delivery').style.display = 'none';
+  document.getElementById('btn-dispatch').style.display = 'none';
+  document.getElementById('btn-dispatch').textContent = '🚀 Dispatch & Track Vehicle';
+  document.getElementById('btn-dispatch').disabled = false;
+  document.getElementById('btn-dispatch').style.background = '#16a34a';
+
+  const aiBtn = document.getElementById('btn-ai');
+  aiBtn.style.display = 'block';
+  aiBtn.disabled = false;
+  aiBtn.textContent = '✨ AI Optimize Route';
+  document.getElementById('ai-status-text').textContent = 'Route Optimized!';
+
+  document.getElementById('waypoints-container').innerHTML = '';
+  document.getElementById('pickup-input').value = '';
+  document.getElementById('destination-input').value = '';
+
+  clearInterval(trackingInterval);
+  if (vehicleMarker) vehicleMarker.setMap(null);
+
+  if (directionsRenderer)   directionsRenderer.setDirections({ routes: [] });
+  if (aiDirectionsRenderer) aiDirectionsRenderer.setDirections({ routes: [] });
+
+  if (map) map.setCenter({ lat: 14.6091, lng: 121.0223 });
+}
+
+// --- HISTORY ---
+function renderHistory() {
+  const container = document.getElementById('history-list');
+
+  if (deliveryHistory.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" id="history-empty">
+        <div class="empty-icon">📊</div>
+        <p>No past dispatch records found.</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  [...deliveryHistory].reverse().forEach(record => {
+    html += `
+      <div class="history-card">
+        <div class="history-card-left">
+          <h4>${record.pickup} ➔ ${record.dropoff}</h4>
+          <p>Vehicle: ${record.vehicle} | ${record.date}</p>
+        </div>
+        <div class="history-card-right">
+          <span class="badge-completed">Completed</span>
+          <p style="font-size: 12px; color: var(--text-muted);">${record.savings}</p>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// --- ROUTE OPTIMIZATION ---
+function optimizeRoute() {
+  if (!directionsService) return;
+
+  const btn = document.getElementById('btn-ai');
+  btn.textContent = '🤖 Computing via Google Maps...';
+  btn.disabled = true;
+
+  clearInterval(trackingInterval);
+  if (vehicleMarker) vehicleMarker.setMap(null);
+
+  const pickup = document.getElementById('pickup-input').value;
+  const dropoff = document.getElementById('destination-input').value;
+
+  if (!pickup || !dropoff) {
+    alert("Please enter both a pickup and drop-off location.");
+    btn.textContent = '✨ AI Optimize Route';
+    btn.disabled = false;
+    return;
+  }
+
+  const waypoints = Array.from(document.querySelectorAll('.wp-input'))
+    .map(inp => inp.value)
+    .filter(val => val)
+    .map(loc => ({ location: loc, stopover: true }));
+
+  directionsService.route({
+    origin: pickup,
+    destination: dropoff,
+    waypoints: waypoints,
+    optimizeWaypoints: true,
+    travelMode: google.maps.TravelMode.DRIVING,
+    provideRouteAlternatives: true
+  }, (response, status) => {
+    if (status === "OK") {
+      directionsRenderer.setDirections(response);
+      currentRoutePath = response.routes[0].overview_path;
+
+      btn.textContent = '🤖 AI Analyzing alternative paths...';
+
+      setTimeout(() => {
+        if (response.routes.length > 1) {
+          const aiResponse = Object.assign({}, response);
+          aiResponse.routes = [response.routes[1]];
+          aiDirectionsRenderer.setDirections(aiResponse);
+          currentRoutePath = response.routes[1].overview_path;
+        }
+
+        btn.style.display = 'none';
+        document.getElementById('btn-dispatch').style.display = 'block';
+        document.getElementById('ai-results').style.display = 'block';
+
+        // Client-side mock savings (replaces Node.js /api/route/optimize)
+        const mockSavings = getMockSavings(dropoff);
+        document.getElementById('time-saved').textContent  = `Time Saved: ${mockSavings.time}`;
+        document.getElementById('gas-saved').textContent   = `Fuel Saved: ${mockSavings.fuel}`;
+        document.getElementById('ai-message').textContent  = mockSavings.message;
+
+      }, 1200);
     } else {
-      // 'completed' tab — no completed cards in demo
-      card.style.display = 'none';
+      window.alert("Directions request failed: " + status);
+      btn.textContent = '✨ AI Optimize Route';
+      btn.disabled = false;
     }
   });
 }
 
-/**
- * Toggle the expanded detail panel on a package card.
- * @param {HTMLElement} card - The package card element
- */
-function togglePkg(card) {
-  card.classList.toggle('open');
+// Replaces the Node.js backend mock — returns randomised plausible savings
+function getMockSavings(destination) {
+  const timeSaved = Math.floor(Math.random() * 15) + 10; // 10–25 mins
+  const fuelSaved = (Math.random() * 1.5 + 0.5).toFixed(1); // 0.5–2.0 L
+  return {
+    time: `${timeSaved} mins`,
+    fuel: `${fuelSaved} Liters`,
+    message: `System identified heavy traffic along primary highway to ${destination}. Re-routing via alternate express lanes.`
+  };
 }
 
-/**
- * Live-filter package cards by tracking number or address text.
- * @param {string} val - Current search input value
- */
-function filterPkgs(val) {
-  const query = val.toLowerCase();
-  document.querySelectorAll('.pkg-card').forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.style.display = text.includes(query) ? 'block' : 'none';
+// --- LIVE TRACKING ANIMATION ---
+function startLiveTracking() {
+  const dispatchBtn = document.getElementById('btn-dispatch');
+  dispatchBtn.textContent = "📍 Vehicle En Route...";
+  dispatchBtn.disabled = true;
+
+  if (currentRoutePath.length === 0) return;
+
+  const activeVehicleCard = document.querySelector('.vehicle-card.active');
+  const vehicleType = activeVehicleCard ? activeVehicleCard.dataset.vehicle : 'Standard Van';
+
+  const iconBaseUrl = vehicleType === 'Box Truck'
+    ? 'https://maps.google.com/mapfiles/ms/icons/truck.png'
+    : 'https://maps.google.com/mapfiles/ms/icons/cabs.png';
+
+  if (vehicleMarker) vehicleMarker.setMap(null);
+
+  vehicleMarker = new google.maps.Marker({
+    position: currentRoutePath[0],
+    map: map,
+    icon: iconBaseUrl,
+    title: "Delivery Vehicle"
   });
+
+  let currentStep = 0;
+
+  trackingInterval = setInterval(() => {
+    currentStep += 2;
+
+    if (currentStep >= currentRoutePath.length) {
+      clearInterval(trackingInterval);
+
+      dispatchBtn.textContent = "✅ Delivery Arrived";
+      dispatchBtn.style.background = "#4b5563";
+      document.getElementById('ai-status-text').textContent = "Delivery Completed!";
+      document.getElementById('btn-new-delivery').style.display = 'block';
+
+      const pickup   = document.getElementById('pickup-input').value;
+      const dropoff  = document.getElementById('destination-input').value;
+      const timeSaved = document.getElementById('time-saved').textContent;
+
+      deliveryHistory.push({
+        pickup, dropoff,
+        vehicle: vehicleType,
+        savings: timeSaved,
+        date: new Date().toLocaleString()
+      });
+
+      return;
+    }
+
+    vehicleMarker.setPosition(currentRoutePath[currentStep]);
+  }, 150);
 }
-
-/* ==================== SETTINGS ==================== */
-
-/**
- * Toggle an on/off setting switch within a setting row.
- * @param {HTMLElement} row - The setting row element containing a .toggle
- */
-function toggleSetting(row) {
-  const toggle = row.querySelector('.toggle');
-  if (toggle) toggle.classList.toggle('on');
-}
-
-/**
- * Toggle the Dark Mode setting switch.
- * (Extend this function to swap CSS variables for a full theme change.)
- * @param {HTMLElement} row - The dark mode setting row
- */
-function toggleDarkMode(row) {
-  const toggle = row.querySelector('.toggle');
-  if (toggle) toggle.classList.toggle('on');
-}
-
-/* ==================== NAVIGATION SCREEN ==================== */
-
-/**
- * Mark the current stop as arrived.
- * Shows confirmation feedback on the button, then resets.
- */
-function arrivalAlert() {
-  const btn = document.querySelector('.nav-btn-arrived');
-  btn.innerHTML = '✓ Marked Arrived!';
-  btn.style.background = '#00a37a';
-
-  setTimeout(() => {
-    btn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-      Arrived`;
-    btn.style.background = '';
-  }, 2000);
-}
-
-/* ==================== INIT ==================== */
-checkLoginBtn();
