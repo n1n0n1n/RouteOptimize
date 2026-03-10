@@ -12,29 +12,55 @@ let vehicleMarker = null;
 let currentRoutePath = [];
 let trackingInterval = null;
 let deliveryHistory  = [];
+let mapsApiReady     = false; // set to true once Google fires onMapsReady
 
 /* ─────────────────────────────────────────
-   MAP INIT
+   MAP INIT — called by Google Maps callback
 ───────────────────────────────────────── */
+function onMapsReady() {
+  mapsApiReady = true;
+  // If user already logged in before API finished loading, init now
+  if (document.getElementById('screen-dashboard').classList.contains('active')) {
+    initGoogleMap();
+  }
+}
+
 function initGoogleMap() {
-  if (map) return;
-  map = new google.maps.Map(document.getElementById('map'), {
+  if (map) {
+    // Already created — just force a resize so it fills its container
+    google.maps.event.trigger(map, 'resize');
+    map.setCenter({ lat: 14.6091, lng: 121.0223 });
+    return;
+  }
+  if (!mapsApiReady) return; // API not loaded yet, onMapsReady will call us
+
+  const mapEl = document.getElementById('map');
+  if (!mapEl) return;
+
+  map = new google.maps.Map(mapEl, {
     zoom: 12,
     center: { lat: 14.6091, lng: 121.0223 },
     disableDefaultUI: true,
     zoomControl: true,
+    gestureHandling: 'greedy', // better for mobile (one-finger pan)
   });
+
   directionsService = new google.maps.DirectionsService();
+
   directionsRenderer = new google.maps.DirectionsRenderer({
     map,
     suppressMarkers: false,
     polylineOptions: { strokeColor: '#9ca3af', strokeWeight: 4, strokeOpacity: 0.7 }
   });
+
   aiDirectionsRenderer = new google.maps.DirectionsRenderer({
     map,
     suppressMarkers: true,
     polylineOptions: { strokeColor: '#3b5bdb', strokeWeight: 6, strokeOpacity: 0.9 }
   });
+
+  // Force another resize after a short delay to handle any layout settling
+  setTimeout(() => google.maps.event.trigger(map, 'resize'), 300);
 }
 
 /* ─────────────────────────────────────────
@@ -58,10 +84,13 @@ function loginSuccess(user) {
   document.getElementById('prof-email').value  = user.email;
   document.getElementById('screen-login').classList.remove('active');
   document.getElementById('screen-dashboard').classList.add('active');
-  setTimeout(() => {
-    initGoogleMap();
-    if (map) google.maps.event.trigger(map, 'resize');
-  }, 350);
+
+  // Wait for the dashboard flex layout to paint, then init/resize the map
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      initGoogleMap();
+    });
+  });
 }
 
 function doLogout() {
