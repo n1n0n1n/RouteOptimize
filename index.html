@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <title>RouteOptimize - Fleet Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
@@ -21,14 +24,19 @@
       <div class="login-right">
         <div class="login-card">
           <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <h2>ROUTE OPTIMIZE</h2>
           </div>
           <div class="input-group">
-            <input type="text" id="login-email" placeholder="Email address (admin@demo.com)" value="admin@demo.com" />
+            <input type="email" id="login-email" placeholder="Email address (admin@demo.com)"
+              value="admin@demo.com" autocomplete="email" autocapitalize="none"/>
           </div>
           <div class="input-group">
-            <input type="password" id="login-pw" placeholder="Password (password123)" value="password123" />
+            <input type="password" id="login-pw" placeholder="Password (password123)"
+              value="password123" autocomplete="current-password"/>
           </div>
           <div class="forgot-pw" onclick="doForgotPw()">Forgot password?</div>
           <button class="btn-primary" onclick="doLogin()">Log In</button>
@@ -44,7 +52,9 @@
     <nav class="top-nav">
       <div class="nav-left">
         <div class="nav-logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
         </div>
         <div class="nav-links">
           <a href="#" class="active" onclick="switchTab('dispatch', this)">Dispatch</a>
@@ -61,6 +71,7 @@
     </nav>
 
     <div class="main-content">
+
       <!-- TAB: DISPATCH -->
       <div id="tab-dispatch" class="tab-content active">
         <div class="sidebar">
@@ -69,14 +80,20 @@
             <div class="stop-inputs" id="route-inputs-container">
               <div class="stop pickup">
                 <span class="dot start"></span>
-                <input type="text" id="pickup-input" value="Quezon City, Metro Manila" placeholder="Pickup location" />
+                <input type="text" id="pickup-input"
+                  value="Quezon City, Metro Manila"
+                  placeholder="Pickup location"
+                  autocomplete="off"/>
               </div>
-              
+
               <div id="waypoints-container"></div>
-              
+
               <div class="stop dropoff">
                 <span class="dot end"></span>
-                <input type="text" id="destination-input" placeholder="Drop-off location" value="Makati City, Metro Manila"/>
+                <input type="text" id="destination-input"
+                  placeholder="Drop-off location"
+                  value="Makati City, Metro Manila"
+                  autocomplete="off"/>
               </div>
             </div>
             <button class="btn-text" onclick="addWaypoint()">+ Add Waypoint</button>
@@ -84,15 +101,19 @@
             <!-- AI ROUTING FEATURE -->
             <div class="ai-routing-box">
               <button class="btn-ai" id="btn-ai" onclick="optimizeRoute()">✨ AI Optimize Route</button>
-              <button class="btn-ai btn-dispatch" id="btn-dispatch" style="display: none; background: #16a34a;" onclick="startLiveTracking()">🚀 Dispatch & Track Vehicle</button>
-              
+              <button class="btn-ai btn-dispatch" id="btn-dispatch"
+                style="display: none; background: #16a34a;"
+                onclick="startLiveTracking()">🚀 Dispatch &amp; Track Vehicle</button>
+
               <div id="ai-results" style="display: none;">
                 <p><strong id="ai-status-text">Route Optimized!</strong></p>
                 <span class="save-tag" id="time-saved">Time Saved: 15 mins</span>
-                <span class="save-tag" id="gas-saved">Gas Saved: 1.2 Liters</span>
+                <span class="save-tag" id="gas-saved">Fuel Saved: 1.2 Liters</span>
                 <p class="small-text" id="ai-message">Bypassing heavy traffic via alternate corridor.</p>
-                
-                <button class="btn-outline" id="btn-new-delivery" style="display: none; margin-top: 12px; width: 100%; border-color: var(--primary); color: var(--primary);" onclick="resetForNewDelivery()">+ Make Another Delivery</button>
+
+                <button class="btn-outline" id="btn-new-delivery"
+                  style="display: none; margin-top: 12px; width: 100%; border-color: var(--primary); color: var(--primary);"
+                  onclick="resetForNewDelivery()">+ Make Another Delivery</button>
               </div>
             </div>
           </div>
@@ -111,7 +132,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="map-area">
           <div id="map"></div>
         </div>
@@ -120,13 +141,21 @@
       <!-- TAB: HISTORY -->
       <div id="tab-records" class="tab-content">
         <div class="history-page">
-          <h2 style="margin-bottom: 20px;">Dispatch History</h2>
+          <h2>Dispatch History</h2>
           <div id="history-list">
             <div class="empty-state" id="history-empty">
               <div class="empty-icon">📊</div>
               <p>No past dispatch records found.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- TAB: FLEET (placeholder) -->
+      <div id="tab-drivers" class="tab-content">
+        <div class="empty-state">
+          <div class="empty-icon">🚛</div>
+          <p>Fleet management coming soon.</p>
         </div>
       </div>
 
@@ -155,7 +184,7 @@
     </div>
   </div>
 
-  <!-- GOOGLE MAPS API: Replace YOUR_API_KEY_HERE with your key from Google Cloud Console. See the included setup guide. -->
+  <!-- GOOGLE MAPS API: Replace YOUR_API_KEY_HERE with your key. See SETUP_GUIDE.md -->
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script>
   <script src="app.js"></script>
 </body>
