@@ -374,6 +374,35 @@ html, body {
   cursor: pointer; padding: 4px 0; margin-top: 2px;
 }
 
+.btn-edit-route {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  color: var(--sub);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-top: 6px;
+  transition: color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-edit-route:hover { color: var(--primary); border-color: var(--primary); }
+
+/* Locked input styling */
+.stop input[readonly] {
+  color: var(--sub);
+  cursor: default;
+}
+.stop-card.locked {
+  background: #f8f9fb;
+  border-color: var(--border);
+}
+
 /* ── AI box ── */
 .ai-box {
   margin-top: 14px;
